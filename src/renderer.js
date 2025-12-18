@@ -4,28 +4,43 @@ import frag from "./shaders/basic.frag.js"
 export function createRenderer(regl) {
 
   // Create draw command
-  const drawScene = regl({
+  const drawMesh = regl({
     vert,
     frag,
 
     attributes: {
-      position: regl.prop("positions")
+      position: regl.prop("positions"),
     },
+
+    elements: regl.prop("elements"),
+
 
     uniforms: {
       projection: (_, props) => props.camera.projection,
       view: (_, props) => props.camera.view,
+      uColor: regl.prop("color"),
     },
 
-    elements: regl.prop("elements")
+
+    cull: {
+        enable: true
+    },
+
+    depth: {
+        enable: true
+    },
+
   })
 
   // Return a function that calls the draw command
   return function render(scene, camera) {
-    drawScene({
-      positions: scene.positions,
-      elements: scene.elements,
-      camera: camera
-    })
+    for (const mesh of scene.meshes) {
+      drawMesh({
+        positions: scene.positions,
+        elements: mesh.elements,
+        color: mesh.color,
+        camera
+      })
+    }
   }
 }

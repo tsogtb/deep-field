@@ -20,7 +20,14 @@ const camera = new Camera(canvas)
 const scene = createScene()
 const render = createRenderer(regl)
 
-regl.frame(() => {
+let prevTime = 0
+
+regl.frame(({ time }) => {
+  const dt = Math.min(time - prevTime, 0.05)
+  prevTime = time
+
+  camera.update(dt)
+
   regl.clear({ color: [0, 0, 0, 1], depth: 1 })
   render(scene, camera)
 })
