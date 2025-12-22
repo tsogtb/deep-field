@@ -12,20 +12,33 @@ export class Camera {
     this.projection = mat4.create()
     this.view = mat4.create()
 
-    this.position = vec3.fromValues(0, 0, 0)
+    this.position = vec3.fromValues(0, 0, 5)
     this.up = vec3.fromValues(0, 1, 0)
     this.front = vec3.fromValues(0, 0, -1)
     this.right = vec3.fromValues(1, 0, 0)
 
     this.yaw = -Math.PI / 2
-    this.pitch = 0
+    this.pitch = 0;
 
-    this.speed = 1.0
+    this.speed = 10.0
     this.mouseSensitivity = 0.002
+
+    this._initialPosition = vec3.clone(this.position)
+    this._initialYaw = this.yaw
+    this._initialPitch = this.pitch
 
     this._initMouse()
     this.updateProjection()
     window.addEventListener("resize", () => this.updateProjection())
+  }
+
+  reset() {
+    vec3.copy(this.position, this._initialPosition)
+  
+    this.yaw = this._initialYaw
+    this.pitch = this._initialPitch
+  
+    this.updateView()
   }
 
   _initMouse() {

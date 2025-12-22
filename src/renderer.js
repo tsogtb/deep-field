@@ -10,25 +10,26 @@ export function createRenderer(regl, starData) {
 			uniform mat4 projection, view;
 			uniform float uTime; 
 			varying vec3 vColor;
-			varying float vSizeFactor; // Pass this to fade the star
+			varying float vSizeFactor; 
+
+      float hash(vec3 p) {
+        return fract(sin(dot(p, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
+      }
 		
 			void main() {
-				float offset = position.x + position.y + position.z;
-				float twinkle = 0.9 + 0.1 * sin(uTime * 1.5 + offset * 10.0);
-				vColor = color * twinkle;
-		
-				vec4 mvPosition = view * vec4(position, 1.0);
-				gl_Position = projection * mvPosition;
-		
-				float baseSize = 100.0 + 90.0 * sin(offset + 123.45);
-				float perspectiveSize = baseSize / -mvPosition.z;
-		
-				// 1. Cap the size so it's at least 1.5 pixels (better for sampling)
-				gl_PointSize = max(perspectiveSize, 1.5);
-		
-				// 2. Calculate how much smaller than 'ideal' the star is.
-				// If perspectiveSize is 0.1, vSizeFactor becomes roughly 0.1.
-				vSizeFactor = clamp(perspectiveSize / 1.5, 0.0, 1.0);
+        float starId = hash(position);
+        
+        float twinkle = 0.9 + 0.1 * sin(uTime * 1.5 + starId * 100.0);
+        vColor = color * twinkle;
+
+        vec4 mvPosition = view * vec4(position, 1.0);
+        gl_Position = projection * mvPosition;
+
+        float baseSize = 40.0 + 80.0 * starId; 
+        float perspectiveSize = baseSize / -mvPosition.z;
+
+        gl_PointSize = max(perspectiveSize, 1.5);
+        vSizeFactor = clamp(perspectiveSize / 1.5, 0.0, 1.0);
 			}
 		`,
 		frag: `
@@ -39,9 +40,8 @@ export function createRenderer(regl, starData) {
 				float dist = length(gl_PointCoord.xy - 0.5);
 				if (dist > 0.5) discard;
 
-				// Soft Gaussian-like glow
 				float glow = pow(1.0 - dist * 2.0, 4.0);
-				// Harder center core
+
 				float core = pow(1.0 - dist * 2.0, 10.0) * 2.0;
 				
 				gl_FragColor = vec4(vColor, (glow + core)*vSizeFactor);

@@ -32,9 +32,38 @@ window.addEventListener("resize", resize)
 resize()
 
 const camera = new Camera(canvas)
-const starData = createStarData(regl)
+let starData = createStarData(regl)
+
+
 const scene = createScene()
-const render = createRenderer(regl, starData)
+let render = createRenderer(regl, starData)
+
+document.getElementById("regen").addEventListener("click", () => {
+  
+  starData.buffer.destroy()
+  starData.colorBuffer.destroy()
+
+  
+  starData = createStarData(regl, {
+    passive: false,
+    clusters: [
+      {
+        num_stars: 2865,
+        center: { x: 1.5, y: 0, z: 0 }, 
+        radius: 0.7,
+        color: [1.0, 0.2, 0.2] 
+      },
+      {
+        num_stars: 5719,
+        center: { x: -1.5, y: 0, z: 0 }, 
+        radius: 1,
+        color: [0.2, 0.5, 1.0]
+      }
+    ]
+  })
+
+  render = createRenderer(regl, starData)
+})
 
 let prevTime = 0
 
