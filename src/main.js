@@ -1,96 +1,56 @@
-import createREGL from "https://esm.sh/regl"
-import { Camera } from "./camera.js"
-import { createRenderer } from "./point_renderer.js"
-import { createScene, createStarData } from "./scene.js"
+import createREGL from "https://esm.sh/regl";
+import { Camera } from "./camera.js";
+import { createPointData } from "./point_data.js";
+import { createPointRenderer } from "./renderer.js";
+import { SCENES, getSceneConfig } from "./scene.js";
 
+// ---------------- Canvas & REGL ----------------
 const canvas = document.getElementById("c");
+const regl = createREGL({ canvas, attributes: { antialias:true, alpha:false, powerPreference:"high-performance" }});
 
-const regl = createREGL({ 
-    canvas,
-    attributes: {
-        antialias: true,
-        alpha: false, 
-        preserveDrawingBuffer: false,
-        powerPreference: "high-performance",
-    },
-});
+function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  canvas.style.width = `${window.innerWidth}px`;
+  canvas.style.height = `${window.innerHeight}px`;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
-function resize() {
-    const dpr = window.devicePixelRatio || 1;
-    
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-  
-    canvas.style.width = `${width}px`;
-    canvas.style.height = `${height}px`;
-};
-
-window.addEventListener("resize", resize)
-resize()
-
+// ---------------- Camera ----------------
 const camera = new Camera(canvas);
 
-let data = createData(regl)
+// ---------------- Scene & Renderer ----------------
+let currentSceneIndex = 0;
+let pointData = createPointData(regl, getSceneConfig(currentSceneIndex).config);
+let render = createPointRenderer(regl, pointData);
 
-function goNext() {
-  currentSceneIndex = (currentSceneIndex + 1) % scenes.length
-  loadScene(currentSceneIndex)
+function loadScene(index) {
+  if(pointData?.buffer) pointData.buffer.destroy();
+  if(pointData?.colorBuffer) pointData.colorBuffer.destroy();
+
+  const config = getSceneConfig(index).config;
+  pointData = createPointData(regl, config);
+  render = createPointRenderer(regl, pointData);
 }
 
-document.getElementById("next").addEventListener("click", () => {
-document.addEventListener("keydown", (event) => {
-  if (event.key === "n" || event.key === "N") {
-    goNext();
-  }
-});
+function goNextScene() {
+  currentSceneIndex = (currentSceneIndex + 1) % SCENES.length;
+  loadScene(currentSceneIndex);
+}
 
+document.getElementById("next").addEventListener("click", goNextScene);
+document.addEventListener("keydown", e => { if(e.key.toLowerCase() === "n") goNextScene(); });
 
-const scene = createScene()
-let render = createRenderer(regl, starData)
-
-  
-  starData.buffer.destroy()
-  starData.colorBuffer.destroy()
-
-  
-  starData = createStarData(regl, {
-    passive: false,
-    clusters: [
-      {
-        num_stars: 2865,
-        center: { x: 1.5, y: 0, z: 0 }, 
-        radius: 0.7,
-        color: [1.0, 0.2, 0.2] 
-      },
-      {
-        num_stars: 5719,
-        center: { x: -1.5, y: 0, z: 0 }, 
-        radius: 1,
-        color: [0.2, 0.5, 1.0]
-      }
-    ]
-  })
-
-  render = createRenderer(regl, starData)
-})
-
-let prevTime = 0
-
+// ---------------- Animation Loop ----------------
+let prevTime = 0;
 regl.frame(({ time }) => {
+  const dt = Math.min(time - prevTime, 0.05);
+  prevTime = time;
 
-  const dt = Math.min(time - prevTime, 0.05)
-  prevTime = time
-  const safeTime = time % (Math.PI * 100)
+  camera.update(dt);
+  regl.clear({ color: [0.02,0.02,0.02,1], depth: 1 });
 
-  camera.update(dt)
-
-  regl.clear({ 
-    color: [0.02, 0.02, 0.02, 1], 
-    depth: 1 
-  })
-
-  render(scene, camera, safeTime)
-})
+  render(camera, time);
+});
