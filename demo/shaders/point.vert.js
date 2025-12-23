@@ -6,6 +6,7 @@ uniform mat4 projection, view;
 uniform float uTime; 
 varying vec3 vColor;
 varying float vSizeFactor; 
+varying float vRotation; // Pass rotation to fragment shader
 
 float hash(vec3 p) {
   return fract(sin(dot(p, vec3(12.9898, 78.233, 45.164))) * 43758.5453);
@@ -25,5 +26,6 @@ void main() {
 
   gl_PointSize = max(perspectiveSize, 1.5);
   vSizeFactor = clamp(perspectiveSize / 1.5, 0.0, 1.0);
+  vRotation = uTime * (1.0 + starId * 4.0) + (starId * 6.28);
 }
 `

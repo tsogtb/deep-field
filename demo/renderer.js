@@ -7,6 +7,7 @@
 import point_vert from "./shaders/point.vert.js";
 import circle_point_frag from "./shaders/circle.point.frag.js";
 import square_point_frag from "./shaders/square.point.frag.js"
+import star_point_frag from "./shaders/star.point.frag.js";
 import background_vert from "./shaders/background.vert.js";
 import background_frag from "./shaders/background.frag.js";
 
@@ -47,6 +48,7 @@ export function createPointRenderer(regl, pointData) {
 
   const drawCircle = regl({ ...baseConfig, frag: circle_point_frag });
   const drawSquare = regl({ ...baseConfig, frag: square_point_frag });
+  const drawStar = regl({ ...baseConfig, frag: star_point_frag });
 
   // ------------------------------
   // Draw Background (full-screen quad gradient)
@@ -88,6 +90,8 @@ export function createPointRenderer(regl, pointData) {
     // Points on top
     if (brushType === 'square') {
       drawSquare(props);
+    } else if (brushType === 'star') {
+      drawStar(props);
     } else {
       drawCircle(props);
     }

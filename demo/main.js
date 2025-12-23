@@ -76,7 +76,15 @@ let currentBrush = 'circle';
 
 window.addEventListener("keydown", (e) => {
   if (e.key.toLowerCase() === "b") { // 'B' for Brush
-    currentBrush = currentBrush === 'circle' ? 'square' : 'circle';
+  
+    if (currentBrush === 'circle') {
+        currentBrush = 'square';
+    } else if (currentBrush === 'square') {
+        currentBrush = 'star';
+    } else {
+        currentBrush = 'circle';
+    }
+    
     console.log(`✨ Brush swapped to: ${currentBrush}`);
   }
 });
