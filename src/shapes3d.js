@@ -112,7 +112,6 @@ export class Sphere3D extends Ellipsoid3D {
 }
 
 
-
 /**
  * Box3D
  * Represents a filled 3D rectangular prism.
@@ -143,6 +142,7 @@ export class Box3D {
     };
   }
 }
+
 
 /**
  * Cone3D

@@ -9,6 +9,8 @@ import { Camera } from "./camera.js";
 import { createPointData } from "./point_data.js";
 import { createPointRenderer } from "./renderer.js";
 import { SCENES, getSceneConfig } from "./scene.js";
+import circle_point_frag from "./shaders/circle.point.frag.js";
+import square_point_frag from "./shaders/square.point.frag.js"
 
 // ---------------- Canvas & REGL ----------------
 const canvas = document.getElementById("c");
@@ -41,11 +43,24 @@ let currentSceneIndex = 0;
 let pointData = createPointData(regl, getSceneConfig(currentSceneIndex).config);
 let render = createPointRenderer(regl, pointData);
 
-function loadScene(index) {
-  if(pointData?.buffer) pointData.buffer.destroy();
-  if(pointData?.colorBuffer) pointData.colorBuffer.destroy();
+const SHADERS = {
+  circle: circle_point_frag,
+  square: square_point_frag,
+};
 
-  const config = getSceneConfig(index).config;
+function loadScene(index) {
+  // CRITICAL: Set pointData to null first so the frame loop stops drawing
+  const oldData = pointData;
+  pointData = null;
+
+  if(oldData?.buffer) oldData.buffer.destroy();
+  if(oldData?.colorBuffer) oldData.colorBuffer.destroy();
+
+  const sceneInfo = getSceneConfig(index);
+  const config = sceneInfo.config;
+
+  if (sceneInfo.brush) currentBrush = sceneInfo.brush;
+
   pointData = createPointData(regl, config);
   render = createPointRenderer(regl, pointData);
 }
@@ -55,23 +70,33 @@ function goNextScene() {
   loadScene(currentSceneIndex);
 }
 
-document.getElementById("next").addEventListener("click", goNextScene);
 document.addEventListener("keydown", e => { if(e.key.toLowerCase() === "n") goNextScene(); });
+
+let currentBrush = 'circle'; 
+
+window.addEventListener("keydown", (e) => {
+  if (e.key.toLowerCase() === "b") { // 'B' for Brush
+    currentBrush = currentBrush === 'circle' ? 'square' : 'circle';
+    console.log(`✨ Brush swapped to: ${currentBrush}`);
+  }
+});
 
 // ---------------- Animation Loop ----------------
 let prevTime = 0;
 regl.frame(({ time }) => {
+  if (!pointData || !pointData.buffer || !pointData.colorBuffer) return; // Don't render if data is missing
   const dt = Math.min(time - prevTime, 0.05);
   prevTime = time;
 
   camera.update(dt);
-  regl.clear({ color: [0.02,0.02,0.02,1], depth: 1 });
+  regl.clear({ color: [0.02, 0.02, 0.02, 1], depth: 1 });
 
-  render(camera, time);
+  render(camera, time, currentBrush);
 });
 
-//----------------- Screenshot ----------------
 
+
+//----------------- Screenshot ----------------
 window.addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'j') {
     const canvas = document.getElementById("c");

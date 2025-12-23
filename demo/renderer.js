@@ -5,14 +5,16 @@
  */
 
 import point_vert from "./shaders/point.vert.js";
-import point_frag from "./shaders/point.frag.js";
-import background_vert from "./shaders/background.vert.js"
-import background_frag from "./shaders/background.frag.js"
+import circle_point_frag from "./shaders/circle.point.frag.js";
+import square_point_frag from "./shaders/square.point.frag.js"
+import background_vert from "./shaders/background.vert.js";
+import background_frag from "./shaders/background.frag.js";
 
 /**
  * Create a point cloud renderer with a background.
  * @param {REGL} regl - Initialized REGL instance
  * @param {{buffer: REGL.Buffer, colorBuffer: REGL.Buffer, count: number}} pointData
+ * @param {string} fragShader - The imported fragment shader string to use
  * @returns {Function} render(camera, time)
  */
 export function createPointRenderer(regl, pointData) {
@@ -20,38 +22,31 @@ export function createPointRenderer(regl, pointData) {
   // ------------------------------
   // Draw Points
   // ------------------------------
-  const drawPoints = regl({
+  const baseConfig = {
     vert: point_vert,
-    frag: point_frag,
     attributes: {
-      position: pointData.buffer,
-      color: pointData.colorBuffer,
+      // Use regl.prop to make these dynamic and safer during transitions
+      position: regl.prop("position"),
+      color: regl.prop("color"),
     },
     uniforms: {
       projection: regl.prop("projection"),
       view: regl.prop("view"),
       uTime: regl.prop("uTime"),
     },
-    count: pointData.count,
+    // Ensure count is also passed as a prop since it changes per scene
+    count: regl.prop("count"), 
     primitive: "points",
     blend: {
       enable: true,
-      func: {
-        srcRGB: "src alpha",
-        srcAlpha: 1,
-        dstRGB: "one",
-        dstAlpha: 1,
-      },
-      equation: {
-        rgb: "add",
-        alpha: "add",
-      },
+      func: { srcRGB: "src alpha", srcAlpha: 1, dstRGB: "one", dstAlpha: 1 },
+      equation: { rgb: "add", alpha: "add" },
     },
-    depth: {
-      enable: true,
-      mask: false,
-    },
-  });
+    depth: { enable: true, mask: false },
+  };
+
+  const drawCircle = regl({ ...baseConfig, frag: circle_point_frag });
+  const drawSquare = regl({ ...baseConfig, frag: square_point_frag });
 
   // ------------------------------
   // Draw Background (full-screen quad gradient)
@@ -74,18 +69,27 @@ export function createPointRenderer(regl, pointData) {
   // ------------------------------
   // Render function
   // ------------------------------
-  return function render(camera, time) {
+  return function render(camera, time, brushType = 'circle') {
     // Background first
     drawBackground({
       colorTop: [0.0, 0.0, 0.0],
       colorBottom: [0.0, 0.0, 0.0],
     });
 
-    // Points on top
-    drawPoints({
+    const props = {
       projection: camera.projection,
       view: camera.view,
       uTime: time,
-    });
+      position: pointData.buffer,     
+      color: pointData.colorBuffer,   
+      count: pointData.count         
+    };
+
+    // Points on top
+    if (brushType === 'square') {
+      drawSquare(props);
+    } else {
+      drawCircle(props);
+    }
   };
 }
