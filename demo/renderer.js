@@ -10,23 +10,17 @@ import square_point_frag from "./shaders/square.point.frag.js"
 import star_point_frag from "./shaders/star.point.frag.js";
 import background_vert from "./shaders/background.vert.js";
 import background_frag from "./shaders/background.frag.js";
+import basic_vert from "./shaders/basic.vert.js";
+import basic_frag from "./shaders/basic.frag.js";
 
-/**
- * Create a point cloud renderer with a background.
- * @param {REGL} regl - Initialized REGL instance
- * @param {{buffer: REGL.Buffer, colorBuffer: REGL.Buffer, count: number}} pointData
- * @param {string} fragShader - The imported fragment shader string to use
- * @returns {Function} render(camera, time)
- */
+
 export function createPointRenderer(regl, pointData) {
 
-  // ------------------------------
-  // Draw Points
-  // ------------------------------
-  const baseConfig = {
-    vert: point_vert,
+  // Define the shared logic to avoid repetition
+  const createPointCommand = (vert, frag) => regl({
+    vert,
+    frag,
     attributes: {
-      // Use regl.prop to make these dynamic and safer during transitions
       position: regl.prop("position"),
       color: regl.prop("color"),
     },
@@ -35,8 +29,7 @@ export function createPointRenderer(regl, pointData) {
       view: regl.prop("view"),
       uTime: regl.prop("uTime"),
     },
-    // Ensure count is also passed as a prop since it changes per scene
-    count: regl.prop("count"), 
+    count: regl.prop("count"),
     primitive: "points",
     blend: {
       enable: true,
@@ -44,39 +37,30 @@ export function createPointRenderer(regl, pointData) {
       equation: { rgb: "add", alpha: "add" },
     },
     depth: { enable: true, mask: false },
-  };
+  });
 
-  const drawCircle = regl({ ...baseConfig, frag: circle_point_frag });
-  const drawSquare = regl({ ...baseConfig, frag: square_point_frag });
-  const drawStar = regl({ ...baseConfig, frag: star_point_frag });
+  // Now pair them up!
+  const drawCircle = createPointCommand(basic_vert, basic_frag);
+  const drawSquare = createPointCommand(point_vert, square_point_frag);
+  const drawStar   = createPointCommand(point_vert, star_point_frag);
+  
+  // Example: A brush that uses a DIFFERENT vertex shader
+  // const drawGridStyle = createPointCommand(grid_vert, circle_point_frag);
 
-  // ------------------------------
-  // Draw Background (full-screen quad gradient)
-  // ------------------------------
   const drawBackground = regl({
     vert: background_vert,
     frag: background_frag,
-    attributes: {
-      position: [[-1, -1], [1, -1], [1, 1], [-1, 1]],
-    },
+    attributes: { position: [[-1, -1], [1, -1], [1, 1], [-1, 1]] },
     elements: [[0, 1, 2], [0, 2, 3]],
     uniforms: {
       colorTop: regl.prop("colorTop"),
       colorBottom: regl.prop("colorBottom"),
     },
     depth: { enable: false },
-    cull: { enable: false },
   });
-
-  // ------------------------------
-  // Render function
-  // ------------------------------
+  
   return function render(camera, time, brushType = 'circle') {
-    // Background first
-    drawBackground({
-      colorTop: [0.0, 0.0, 0.0],
-      colorBottom: [0.0, 0.0, 0.0],
-    });
+    drawBackground({ colorTop: [0,0,0], colorBottom: [0,0,0] });
 
     const props = {
       projection: camera.projection,
@@ -87,13 +71,12 @@ export function createPointRenderer(regl, pointData) {
       count: pointData.count         
     };
 
-    // Points on top
-    if (brushType === 'square') {
-      drawSquare(props);
-    } else if (brushType === 'star') {
-      drawStar(props);
-    } else {
-      drawCircle(props);
+    // This switch now controls the VERTEX + FRAGMENT pair 
+    switch(brushType) {
+      case 'square': drawSquare(props); break;
+      case 'star':   drawStar(props);   break;
+      // case 'grid':   drawGridStyle(props); break;
+      default:       drawCircle(props);
     }
   };
 }
