@@ -19,7 +19,6 @@ void main() {
     float s = 0.5 + 0.5 * cos(a * 5.0);
     float starShape = r / (0.2 + 0.3 * s);
     
-    // Discard everything outside the star radius
     if (starShape > 1.0) discard;
 
     // Glowing core logic

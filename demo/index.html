@@ -2,7 +2,7 @@
 (c) 2025 Tsogt
 This code is licensed under the MIT License.
 Created: 12/20/2025
-Last modified: 12/22/2025
+Last modified: 12/26/2025
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -40,37 +40,6 @@ Last modified: 12/22/2025
             outline: none;
         }
 
-        /* Polished UI Button */
-        #next {
-            position: fixed;
-            bottom: 24px; /* Moved to bottom for better thumb reach on mobile */
-            right: 24px;
-            z-index: 10;
-            padding: 12px 20px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 50px;
-            color: white;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            user-select: none;
-        }
-
-        #next:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
-        }
-
-        #next:active {
-            transform: translateY(0);
-        }
-
         /* Keyboard Shortcut Hint */
         .hint {
           position: fixed;
@@ -90,14 +59,25 @@ Last modified: 12/22/2025
     
     <canvas id="c"></canvas>
 
+    <div id="camera-overlay" style="
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    padding: 10px;
+    font-family: monospace;
+    border-radius: 4px;
+    pointer-events: none; /* Allows to click through it */
+    z-index: 1000;
+    "></div>
+
     <script type="module" src="main.js"></script>
     <script>
         // Auto-focus the canvas so keyboard shortcuts work instantly
         window.onload = () => {
           const canvas = document.getElementById('c');
           canvas.focus();
-          
-          // If they click the background, give focus back to the canvas
           window.addEventListener('click', () => canvas.focus());
         };
     </script>

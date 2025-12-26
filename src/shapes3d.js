@@ -1,37 +1,27 @@
 /**
- * shapes3d.js
- * * Uniform sampling of 3D geometric volumes and sectors.
- * Standardizes on { x, y, z } returns and provides .contains(p, epsilon) logic.
- */
-
-
-/**
  * EllipsoidSector3D
- * Represents a sector (partial wedge) of a 3D ellipsoid.
+ * The master class for all ellipsoidal/spherical shapes and shells.
  */
 export class EllipsoidSector3D {
-  /**
-   * @param {{x: number, y: number, z: number}} center - Center coordinates
-   * @param {number} [rx=1] - Radius along X
-   * @param {number} [ry=1] - Radius along Y
-   * @param {number} [rz=1] - Radius along Z
-   * @param {number} [startTheta=0] - Azimuth start angle (around Z axis)
-   * @param {number} [endTheta=2*Math.PI] - Azimuth end angle
-   * @param {number} [startPhi=0] - Polar start angle (from Z axis)
-   * @param {number} [endPhi=Math.PI] - Polar end angle
-   */
-  constructor(center, rx = 1, ry = 1, rz = 1, startTheta = 0, endTheta = 2 * Math.PI, startPhi = 0, endPhi = Math.PI) {
+  constructor(center, rx=1, ry=1, rz=1, startTheta=0, endTheta=2*Math.PI, startPhi=0, endPhi=Math.PI, innerRx=0, innerRy=0, innerRz=0) {
     this.center = center;
     this.rx = rx; this.ry = ry; this.rz = rz;
+    this.innerRx = innerRx; this.innerRy = innerRy; this.innerRz = innerRz;
     this.startTheta = startTheta; this.endTheta = endTheta;
     this.startPhi = startPhi; this.endPhi = endPhi;
 
     let deltaTheta = endTheta - startTheta;
     if (deltaTheta < 0) deltaTheta += 2 * Math.PI;
+    this.deltaTheta = deltaTheta;
 
-    // Correct solid angle fraction for volume calculation
-    const solidAngle = deltaTheta * (Math.cos(startPhi) - Math.cos(endPhi));
-    this.volume = (1 / 3) * rx * ry * rz * solidAngle;
+    // Solid angle fraction
+    this.cosStartPhi = Math.cos(startPhi);
+    this.cosEndPhi = Math.cos(endPhi);
+    const solidAngle = deltaTheta * (this.cosStartPhi - this.cosEndPhi);
+    
+    const volOuter = (1/3) * rx * ry * rz * solidAngle;
+    const volInner = (1/3) * innerRx * innerRy * innerRz * solidAngle;
+    this.volume = volOuter - volInner;
 
     this.bbox = {
       minX: center.x - rx, maxX: center.x + rx,
@@ -40,124 +30,175 @@ export class EllipsoidSector3D {
     };
   }
 
-  /**
-   * Check if a point is inside the ellipsoidal sector
-   * @param {{x: number, y: number, z: number}} p 
-   * @param {number} [epsilon=1e-9]
-   */
   contains(p, epsilon = 1e-9) {
-    const dx = (p.x - this.center.x) / this.rx;
-    const dy = (p.y - this.center.y) / this.ry;
-    const dz = (p.z - this.center.z) / this.rz;
-  
-    const distSq = dx * dx + dy * dy + dz * dz;
+    const dx = p.x - this.center.x, dy = p.y - this.center.y, dz = p.z - this.center.z;
+    
+    const dnx = dx / this.rx, dny = dy / this.ry, dnz = dz / this.rz;
+    const distSq = dnx * dnx + dny * dny + dnz * dnz;
     if (distSq > 1 + epsilon) return false;
-  
-    // 1. Azimuth check
+
+    if (this.innerRx > 0) {
+      const idnx = dx / this.innerRx, idny = dy / this.innerRy, idnz = dz / this.innerRz;
+      if (idnx * idnx + idny * idny + idnz * idnz < 1 - epsilon) return false;
+    }
+
+    // Azimuth check (Theta)
     let theta = Math.atan2(dy, dx); 
     if (theta < 0) theta += 2 * Math.PI;
-  
-    let inTheta = (this.startTheta <= this.endTheta) 
+    const inTheta = (this.startTheta <= this.endTheta) 
       ? (theta >= this.startTheta - epsilon && theta <= this.endTheta + epsilon)
       : (theta >= this.startTheta - epsilon || theta <= this.endTheta + epsilon);
-    
     if (!inTheta) return false;
-  
-    // 2. Polar check
-    const phi = Math.acos(Math.max(-1, Math.min(1, dz / (Math.sqrt(distSq) + 1e-15))));
-    return phi >= this.startPhi - epsilon && phi <= this.endPhi + epsilon;
+
+    // Polar check (Phi) - Optimized: uses Cosine comparison to avoid acos()
+    const cosP = dz / (Math.sqrt(dx*dx + dy*dy + dz*dz) + 1e-15);
+    return cosP <= this.cosStartPhi + epsilon && cosP >= this.cosEndPhi - epsilon;
   }
 
-  /**
-   * Sample a point uniformly inside the sector
-   */
   sample() {
-    const r = Math.cbrt(Math.random());
-    let deltaTheta = this.endTheta - this.startTheta;
-    if (deltaTheta < 0) deltaTheta += 2 * Math.PI;
+    // Uniform volume scaling for 3D (Cube Root)
+    const ratio = (this.innerRx / this.rx); // assume uniform scaling
+    const r = Math.cbrt(Math.random() * (1 - ratio**3) + ratio**3);
     
-    const theta = (this.startTheta + Math.random() * deltaTheta) % (2 * Math.PI);
-    const cosStart = Math.cos(this.startPhi);
-    const cosEnd = Math.cos(this.endPhi);
-    const phi = Math.acos(cosStart - Math.random() * (cosStart - cosEnd));
-  
-    const sinPhi = Math.sin(phi);
+    const theta = (this.startTheta + Math.random() * this.deltaTheta) % (2 * Math.PI);
+    const cosP = this.cosStartPhi - Math.random() * (this.cosStartPhi - this.cosEndPhi);
+    const sinP = Math.sqrt(Math.max(0, 1 - cosP * cosP));
+
     return {
-      x: this.center.x + this.rx * r * sinPhi * Math.cos(theta),
-      y: this.center.y + this.ry * r * sinPhi * Math.sin(theta),
-      z: this.center.z + this.rz * r * Math.cos(phi)
+      x: this.center.x + this.rx * r * sinP * Math.cos(theta),
+      y: this.center.y + this.ry * r * sinP * Math.sin(theta),
+      z: this.center.z + this.rz * r * cosP
     };
   }
 }
 
 /**
  * Ellipsoid3D
- * Represents a filled 3D ellipsoid.
+ * Overrides to skip angular logic.
  */
 export class Ellipsoid3D extends EllipsoidSector3D {
-  constructor(center, rx = 1, ry = 1, rz = 1) {
-    super(center, rx, ry, rz, 0, 2 * Math.PI, 0, Math.PI);
+  constructor(center, rx=1, ry=1, rz=1, innerRx=0, innerRy=0, innerRz=0) {
+    super(center, rx, ry, rz, 0, 2*Math.PI, 0, Math.PI, innerRx, innerRy, innerRz);
+  }
+
+  contains(p, epsilon = 1e-9) {
+    const dx = p.x - this.center.x, dy = p.y - this.center.y, dz = p.z - this.center.z;
+    const distSq = (dx*dx)/(this.rx*this.rx) + (dy*dy)/(this.ry*this.ry) + (dz*dz)/(this.rz*this.rz);
+    if (distSq > 1 + epsilon) return false;
+    if (this.innerRx > 0) {
+      const iDistSq = (dx*dx)/(this.innerRx*this.innerRx) + (dy*dy)/(this.innerRy*this.innerRy) + (dz*dz)/(this.innerRz*this.innerRz);
+      if (iDistSq < 1 - epsilon) return false;
+    }
+    return true;
+  }
+
+  sample() {
+    const ratio = (this.innerRx / this.rx);
+    const r = Math.cbrt(Math.random() * (1 - ratio**3) + ratio**3);
+    const theta = Math.random() * 2 * Math.PI;
+    const cosP = 2 * Math.random() - 1;
+    const sinP = Math.sqrt(1 - cosP * cosP);
+    return {
+      x: this.center.x + this.rx * r * sinP * Math.cos(theta),
+      y: this.center.y + this.ry * r * sinP * Math.sin(theta),
+      z: this.center.z + this.rz * r * cosP
+    };
   }
 }
 
 /**
  * Sphere3D
- * Represents a filled 3D sphere.
+ * The most optimized 3D volume sampler.
  */
 export class Sphere3D extends Ellipsoid3D {
-  constructor(center, radius = 1) {
-    super(center, radius, radius, radius);
+  constructor(center, radius=1, innerRadius=0) {
+    super(center, radius, radius, radius, innerRadius, innerRadius, innerRadius);
+    this.rSq = radius * radius;
+    this.irSq = innerRadius * innerRadius;
     this.radius = radius;
-  }
-}
-
-
-/**
- * Box3D
- * Represents a filled 3D rectangular prism.
- */
-export class Box3D {
-  constructor(center, width = 1, height = 1, depth = 1) {
-    this.center = center;
-    this.width = width; this.height = height; this.depth = depth;
-    this.volume = width * height * depth;
-    this.bbox = {
-      minX: center.x - width / 2, maxX: center.x + width / 2,
-      minY: center.y - height / 2, maxY: center.y + height / 2,
-      minZ: center.z - depth / 2, maxZ: center.z + depth / 2
-    };
+    this.innerRadius = innerRadius;
   }
 
   contains(p, epsilon = 1e-9) {
-    return Math.abs(p.x - this.center.x) <= (this.width / 2) + epsilon && 
-           Math.abs(p.y - this.center.y) <= (this.height / 2) + epsilon && 
-           Math.abs(p.z - this.center.z) <= (this.depth / 2) + epsilon;
+    const dx = p.x - this.center.x, dy = p.y - this.center.y, dz = p.z - this.center.z;
+    const d2 = dx*dx + dy*dy + dz*dz;
+    return d2 <= this.rSq + epsilon && d2 >= this.irSq - epsilon;
   }
 
   sample() {
+    const r = Math.cbrt(Math.random() * (this.radius**3 - this.innerRadius**3) + this.innerRadius**3);
+    const theta = Math.random() * 2 * Math.PI;
+    const cosP = 2 * Math.random() - 1;
+    const sinP = Math.sqrt(1 - cosP * cosP);
     return {
-      x: this.center.x + (Math.random() - 0.5) * this.width,
-      y: this.center.y + (Math.random() - 0.5) * this.height,
-      z: this.center.z + (Math.random() - 0.5) * this.depth
+      x: this.center.x + r * sinP * Math.cos(theta),
+      y: this.center.y + r * sinP * Math.sin(theta),
+      z: this.center.z + r * cosP
     };
   }
 }
 
+/**
+ * Box3D
+ */
+export class Box3D {
+  constructor(center, width=1, height=1, depth=1) {
+    this.center = center; this.width = width; this.height = height; this.depth = depth;
+    this.volume = width * height * depth;
+    this.bbox = { minX: center.x-width/2, maxX: center.x+width/2, minY: center.y-height/2, maxY: center.y+height/2, minZ: center.z-depth/2, maxZ: center.z+depth/2 };
+  }
+  contains(p, epsilon=1e-9) {
+    return Math.abs(p.x-this.center.x) <= this.width/2 + epsilon && Math.abs(p.y-this.center.y) <= this.height/2 + epsilon && Math.abs(p.z-this.center.z) <= this.depth/2 + epsilon;
+  }
+  sample() {
+    return { x: this.center.x + (Math.random()-0.5)*this.width, y: this.center.y + (Math.random()-0.5)*this.height, z: this.center.z + (Math.random()-0.5)*this.depth };
+  }
+}
+
+/**
+ * Cylinder3D (Tube/Pipe Support)
+ */
+export class Cylinder3D {
+  constructor(center, radius=1, height=1, innerRadius=0) {
+    this.center = center; this.radius = radius; this.height = height; this.innerRadius = innerRadius;
+    this.volume = Math.PI * (radius*radius - innerRadius*innerRadius) * height;
+    this.rSq = radius * radius;
+    this.irSq = innerRadius * innerRadius;
+  }
+  contains(p, epsilon=1e-9) {
+    const dz = p.z - this.center.z;
+    if (dz < -epsilon || dz > this.height + epsilon) return false;
+    const d2 = (p.x-this.center.x)**2 + (p.y-this.center.y)**2;
+    return d2 <= this.rSq + epsilon && d2 >= this.irSq - epsilon;
+  }
+  sample() {
+    const r = Math.sqrt(Math.random() * (this.rSq - this.irSq) + this.irSq);
+    const t = Math.random() * 2 * Math.PI;
+    return { x: this.center.x + r*Math.cos(t), y: this.center.y + r*Math.sin(t), z: this.center.z + Math.random()*this.height };
+  }
+}
 
 /**
  * Cone3D
- * Represents a vertical 3D cone pointing along the +Z axis.
  */
 export class Cone3D {
   /**
    * @param {{x,y,z}} center - Center of the circular base
-   * @param {number} radius - Base radius
-   * @param {number} height - Distance from base to tip
+   * @param {number} radius - Base outer radius
+   * @param {number} height - Distance from base to tip along +Z
+   * @param {number} innerRadius - Base inner radius for hollow cones
    */
-  constructor(center, radius = 1, height = 1) {
+  constructor(center, radius = 1, height = 1, innerRadius = 0) {
     this.center = center;
-    this.radius = radius; this.height = height;
-    this.volume = (1 / 3) * Math.PI * radius * radius * height;
+    this.radius = radius; 
+    this.innerRadius = innerRadius;
+    this.height = height;
+
+    this.volume = (1 / 3) * Math.PI * height * (radius * radius - innerRadius * innerRadius);
+
+    this.rSq = radius * radius;
+    this.irSq = innerRadius * innerRadius;
+
     this.bbox = {
       minX: center.x - radius, maxX: center.x + radius,
       minY: center.y - radius, maxY: center.y + radius,
@@ -168,78 +209,25 @@ export class Cone3D {
   contains(p, epsilon = 1e-9) {
     const dz = p.z - this.center.z;
     if (dz < -epsilon || dz > this.height + epsilon) return false;
-    const radiusAtHeight = this.radius * (1 - dz / this.height);
+
+    const t = 1 - (dz / this.height);
+    const currentOuterRSq = this.rSq * (t * t);
+    const currentInnerRSq = this.irSq * (t * t);
+
     const dx = p.x - this.center.x;
     const dy = p.y - this.center.y;
-    return dx * dx + dy * dy <= (radiusAtHeight * radiusAtHeight) + epsilon;
+    const d2 = dx * dx + dy * dy;
+
+    return d2 <= currentOuterRSq + epsilon && d2 >= currentInnerRSq - epsilon;
   }
 
   sample() {
-    // Volume scales with h^3, so use cube root for uniform vertical distribution
-    const t = Math.cbrt(Math.random()); 
+    const u = Math.random();
+    const t = Math.cbrt(u);
     const z = this.center.z + (1 - t) * this.height;
-    const r = (this.radius * t) * Math.sqrt(Math.random());
+    const r = t * Math.sqrt(Math.random() * (this.rSq - this.irSq) + this.irSq);
     const theta = Math.random() * 2 * Math.PI;
-    return {
-      x: this.center.x + r * Math.cos(theta),
-      y: this.center.y + r * Math.sin(theta),
-      z: z
-    };
-  }
-}
 
-/**
- * Cylinder3D
- * Represents a filled 3D cylinder aligned with the Z-axis.
- */
-export class Cylinder3D {
-  /**
-   * @param {{x,y,z}} center - Center of the circular base
-   * @param {number} radius - Radius of the cylinder
-   * @param {number} height - Vertical height along +Z
-   */
-  constructor(center, radius = 1, height = 1) {
-    this.center = center;
-    this.radius = radius;
-    this.height = height;
-    
-    /** Volume = π * r² * h */
-    this.volume = Math.PI * radius * radius * height;
-    
-    this.bbox = {
-      minX: center.x - radius, maxX: center.x + radius,
-      minY: center.y - radius, maxY: center.y + radius,
-      minZ: center.z,          maxZ: center.z + height
-    };
-  }
-
-  /**
-   * Check if a point is inside the cylinder.
-   * @param {{x: number, y: number, z: number}} p 
-   * @param {number} [epsilon=1e-9]
-   */
-  contains(p, epsilon = 1e-9) {
-    const dz = p.z - this.center.z;
-    // Check height bounds
-    if (dz < -epsilon || dz > this.height + epsilon) return false;
-    
-    // Check radial bounds (x² + y² <= r²)
-    const dx = p.x - this.center.x;
-    const dy = p.y - this.center.y;
-    return (dx * dx + dy * dy) <= (this.radius * this.radius) + epsilon;
-  }
-
-  /**
-   * Sample a point uniformly inside the cylinder volume.
-   */
-  sample() {
-    // Uniform height distribution (linear)
-    const z = this.center.z + Math.random() * this.height;
-    
-    // Uniform radial distribution (sqrt to account for area scaling)
-    const r = this.radius * Math.sqrt(Math.random());
-    const theta = Math.random() * 2 * Math.PI;
-    
     return {
       x: this.center.x + r * Math.cos(theta),
       y: this.center.y + r * Math.sin(theta),

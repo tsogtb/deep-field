@@ -1,61 +1,20 @@
 /**
  * composite_shapes.js
- * 
- * Utilities for sampling points from composite shapes formed by 
- * unions or intersections of multiple base shapes.
- * 
- * Requirements for base shapes:
- * - .sample(): returns a uniformly sampled point {x, y, z}
- * - .contains(point): returns true if point is inside the shape
- * - .area or .volume (optional): numeric measure, used for weighted union sampling
- * 
- * Functions:
- * - sampleUnion(shapes): pick a point from the union of multiple shapes
- *   using area/volume-weighted random selection
- * - sampleIntersection(shapes, bbox, maxAttempts=1000): pick a point from the
- *   intersection using rejection sampling. bbox defines the search space.
- * 
- * Works for both 2D and 3D shapes as long as they implement the required interface.
+ * Boolean operations for 2D and 3D geometric sampling.
  */
 
-
-/**
- * CompositeShape
- * * Represents a complex volume formed by Boolean operations (CSG) on other shapes.
- * Supports recursive nesting (e.g., a union of intersections).
- * * @example
- * const sphere = new Sphere3D({x:0, y:0, z:0}, 2);
- * const box = new Box3D({x:0, y:0, z:0}, 1, 1, 1);
- * * // Create a "Hollow Sphere"
- * const hollow = new CompositeShape('difference', [sphere, box]);
- * const p = hollow.sample();
- */
 export class CompositeShape {
-  /**
-   * @param {'union'|'intersection'|'difference'|'faulty_union'} type - Operation type
-   * @param {Array<Object>} shapes - Array of shape instances
-   * @param {Object} [options={}] - Configuration options
-   * @param {number} [options.maxAttempts=1000] - Rejection sampling limit
-   */
   constructor(type, shapes, options = {}) {
     this.type = type;
     this.shapes = shapes;
     this.maxAttempts = options.maxAttempts ?? 1000;
 
-    // Standard properties for interface compatibility
+    // Standard properties
     this.bbox = this._calculateBBox();
-    
-    // For weighting in higher-level unions
     this.volume = this._calculateVolume();
     this.area = this.volume; 
   }
 
-  /**
-   * Check if a point is inside the composite volume
-   * @param {{x: number, y: number, z: number}} p 
-   * @param {number} [epsilon=1e-9] 
-   * @returns {boolean}
-   */
   contains(p, epsilon = 1e-9) {
     switch (this.type) {
       case 'union':
@@ -64,206 +23,125 @@ export class CompositeShape {
       case 'intersection':
         return this.shapes.every(s => s.contains(p, epsilon));
       case 'difference':
-        // Inside A AND NOT inside B
         return this.shapes[0].contains(p, epsilon) && !this.shapes[1].contains(p, epsilon);
       default:
         return false;
     }
   }
 
-  /**
-   * Sample a point uniformly inside the composite volume
-   * @returns {{x: number, y: number, z: number}}
-   */
   sample() {
     switch (this.type) {
-      case 'union':
-        return sampleUnion(this.shapes, this.maxAttempts);
-      case 'faulty_union':
-        return sampleFaultyUnion(this.shapes);
-      case 'intersection':
-        return sampleIntersection(this.shapes, this.maxAttempts);
-      case 'difference':
-        return sampleDifference(this.shapes[0], this.shapes[1], this.maxAttempts);
+      case 'union':        return sampleUnion(this.shapes, this.maxAttempts);
+      case 'faulty_union': return sampleFaultyUnion(this.shapes);
+      case 'intersection': return sampleIntersection(this.shapes, this.maxAttempts);
+      case 'difference':   return sampleDifference(this.shapes[0], this.shapes[1], this.maxAttempts);
     }
   }
 
-/** @private */
-_calculateBBox() {
-  const shapes = this.shapes;
-  if (!shapes.length) return { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
-
-  // 1. Normalize the initial bounding box to ensure z-axis exists
-  const initial = {
-    minX: shapes[0].bbox.minX,
-    maxX: shapes[0].bbox.maxX,
-    minY: shapes[0].bbox.minY,
-    maxY: shapes[0].bbox.maxY,
-    minZ: shapes[0].bbox.minZ ?? 0,
-    maxZ: shapes[0].bbox.maxZ ?? 0
-  };
-
-  // 2. Perform the reduction
-  return shapes.reduce((acc, s) => {
-    const b = s.bbox;
-    const bzMin = b.minZ ?? 0;
-    const bzMax = b.maxZ ?? 0;
-
-    if (this.type === 'intersection') {
-      return {
-        minX: Math.max(acc.minX, b.minX),
-        maxX: Math.min(acc.maxX, b.maxX),
-        minY: Math.max(acc.minY, b.minY),
-        maxY: Math.min(acc.maxY, b.maxY),
-        minZ: Math.max(acc.minZ, bzMin),
-        maxZ: Math.min(acc.maxZ, bzMax)
-      };
-    } else {
-      // Union and Difference logic
-      return {
-        minX: Math.min(acc.minX, b.minX),
-        maxX: Math.max(acc.maxX, b.maxX),
-        minY: Math.min(acc.minY, b.minY),
-        maxY: Math.max(acc.maxY, b.maxY),
-        minZ: Math.min(acc.minZ, bzMin),
-        maxZ: Math.max(acc.maxZ, bzMax)
-      };
-    }
-  }, initial);
-}
-
   /** @private */
+  _calculateBBox() {
+    const shapes = this.shapes;
+    if (!shapes.length) return { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
+
+    if (this.type === 'difference') return shapes[0].bbox;
+
+    return shapes.reduce((acc, s, idx) => {
+      const b = s.bbox;
+      const bzMin = b.minZ ?? 0;
+      const bzMax = b.maxZ ?? 0;
+
+      if (idx === 0) return { ...b, minZ: bzMin, maxZ: bzMax };
+
+      if (this.type === 'intersection') {
+        return {
+          minX: Math.max(acc.minX, b.minX), maxX: Math.min(acc.maxX, b.maxX),
+          minY: Math.max(acc.minY, b.minY), maxY: Math.min(acc.maxY, b.maxY),
+          minZ: Math.max(acc.minZ, bzMin),  maxZ: Math.min(acc.maxZ, bzMax)
+        };
+      } else {
+        return {
+          minX: Math.min(acc.minX, b.minX), maxX: Math.max(acc.maxX, b.maxX),
+          minY: Math.min(acc.minY, b.minY), maxY: Math.max(acc.maxY, b.maxY),
+          minZ: Math.min(acc.minZ, bzMin),  maxZ: Math.max(acc.maxZ, bzMax)
+        };
+      }
+    }, {});
+  }
+
+  /** @private Estimation for weight-based sampling */
   _calculateVolume() {
-    // Difference volume is roughly A - B (simplified)
-    if (this.type === 'difference') return Math.max(0, (this.shapes[0].volume || 0) - (this.shapes[1].volume || 0));
-    // Union/Faulty volume is sum of parts
+    if (this.type === 'difference') {
+      return Math.max(0.001, (this.shapes[0].volume || 1) * 0.7); // Heuristic
+    }
+    if (this.type === 'intersection') {
+      const b = this.bbox;
+      return (b.maxX - b.minX) * (b.maxY - b.minY) * (b.maxZ - b.minZ || 1) * 0.5; // Heuristic
+    }
     return this.shapes.reduce((sum, s) => sum + (s.volume ?? s.area ?? 0), 0);
   }
 }
 
 
-/**
- * Sample a point from the union of multiple shapes.
- * Each shape must have:
- * - sample(): returns a uniformly sampled point
- * - contains(): 
- * - area or volume: numeric measure (for weighting)
- * 
- * @param {Array<{sample: Function, area?: number, volume?: number}>} shapes
- * @returns {{x: number, y: number, z: number}}
- */
 export function sampleUnion(shapes, maxAttempts = 100) {
   const weights = shapes.map(s => s.area ?? s.volume ?? 1);
   const totalWeight = weights.reduce((a, b) => a + b, 0);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     let r = Math.random() * totalWeight;
-    let selectedIdx = 0;
+    let idx = 0;
     for (let i = 0; i < shapes.length; i++) {
-      if ((r -= weights[i]) <= 0) {
-        selectedIdx = i;
-        break;
-      }
+      if ((r -= weights[i]) <= 0) { idx = i; break; }
     }
-
-    const point = shapes[selectedIdx].sample();
-
-    let alreadyCovered = false;
-    for (let j = 0; j < selectedIdx; j++) {
-      if (shapes[j].contains(point)) {
-        alreadyCovered = true;
-        break;
-      }
+    const point = shapes[idx].sample();
+    let coveredByPrior = false;
+    for (let j = 0; j < idx; j++) {
+      if (shapes[j].contains(point)) { coveredByPrior = true; break; }
     }
-
-    if (!alreadyCovered) return point;
+    if (!coveredByPrior) return point;
   }
-  
-  // Fallback: If rejection fails too many times, return the last sampled point 
-  // (prevents infinite loops in highly overlapping clusters)
-  return shapes[0].sample();
+  return shapes[0].sample(); 
 }
 
-
-/**
- * Sample a point from the intersection of multiple shapes using rejection sampling.
- * Each shape must provide:
- * - contains(point): returns true/false
- * 
- * @param {Array<{contains: Function}>} shapes - Shapes to intersect
- * @param {{minX: number, maxX: number, minY: number, maxY: number, minZ?: number, maxZ?: number}} bbox - bounding box of intersection
- * @param {number} [maxAttempts=1000] - Maximum number of sampling attempts
- * @returns {{x: number, y: number, z: number}}
- * @throws {Error} If no point found in maxAttempts
- */
 export function sampleIntersection(shapes, maxAttempts = 1000) {
-  // Level up: Automatically calculate the intersection of all bounding boxes
-  const intersectBBox = shapes.reduce((acc, shape) => {
-    const b = shape.bbox;
+  const bbox = shapes.reduce((acc, s, i) => {
+    if (i === 0) return s.bbox;
     return {
-      minX: Math.max(acc.minX, b.minX), maxX: Math.min(acc.maxX, b.maxX),
-      minY: Math.max(acc.minY, b.minY), maxY: Math.min(acc.maxY, b.maxY),
-      minZ: Math.max(acc.minZ ?? 0, b.minZ ?? 0), maxZ: Math.min(acc.maxZ ?? 0, b.maxZ ?? 0)
+      minX: Math.max(acc.minX, s.bbox.minX), maxX: Math.min(acc.maxX, s.bbox.maxX),
+      minY: Math.max(acc.minY, s.bbox.minY), maxY: Math.min(acc.maxY, s.bbox.maxY),
+      minZ: Math.max(acc.minZ ?? 0, s.bbox.minZ ?? 0), maxZ: Math.min(acc.maxZ ?? 0, s.bbox.maxZ ?? 0)
     };
-  }, shapes[0].bbox);
+  }, {});
 
-  // If the bounding boxes don't even touch, the intersection is empty
-  if (intersectBBox.minX > intersectBBox.maxX || intersectBBox.minY > intersectBBox.maxY) {
-    throw new Error("Shapes do not intersect (Bounding boxes are disjoint)");
+  if (bbox.minX > bbox.maxX || bbox.minY > bbox.maxY || (bbox.minZ > bbox.maxZ)) {
+    throw new Error("Invalid Intersection: Shapes are spatially disjoint (Bounding boxes do not overlap).");
   }
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  for (let i = 0; i < maxAttempts; i++) {
     const p = {
-      x: intersectBBox.minX + Math.random() * (intersectBBox.maxX - intersectBBox.minX),
-      y: intersectBBox.minY + Math.random() * (intersectBBox.maxY - intersectBBox.minY),
-      z: (intersectBBox.maxZ === intersectBBox.minZ) ? 0 : 
-          intersectBBox.minZ + Math.random() * (intersectBBox.maxZ - intersectBBox.minZ)
+      x: bbox.minX + Math.random() * (bbox.maxX - bbox.minX),
+      y: bbox.minY + Math.random() * (bbox.maxY - bbox.minY),
+      z: bbox.minZ + Math.random() * (bbox.maxZ - bbox.minZ)
     };
-
     if (shapes.every(s => s.contains(p))) return p;
   }
-
-  throw new Error(`Intersection sampling failed after ${maxAttempts} attempts`);
+  
+  throw new Error(`Intersection sampling failed: Possible zero-volume intersection or maxAttempts (${maxAttempts}) reached.`);
 }
 
-
-/**
- * Sample a point from the difference of two shapes: A \ B.
- * That is, pick a point inside shapeA that is NOT inside shapeB.
- * Uses rejection sampling within the bounding box of shapeA.
- * 
- * Each shape must provide:
- * - contains(point): returns true/false
- * 
- * @param {{contains: Function, bbox: {minX: number, maxX: number, minY: number, maxY: number, minZ?: number, maxZ?: number}}} shapeA - The base shape
- * @param {{contains: Function}} shapeB - The shape to subtract
- * @param {number} [maxAttempts=1000] - Maximum number of attempts
- * @returns {{x: number, y: number, z: number}}
- * @throws {Error} If no point found after maxAttempts
- */
 export function sampleDifference(shapeA, shapeB, maxAttempts = 1000) {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const p = shapeA.sample(); // Efficient: only sample from the source shape
+  for (let i = 0; i < maxAttempts; i++) {
+    const p = shapeA.sample();
     if (!shapeB.contains(p)) return p;
   }
-  throw new Error(`Difference sampling failed after ${maxAttempts} attempts`);
+  return shapeA.sample(); 
 }
 
-
-/**
- * Sample a point from the union without checking for overlaps.
- * Resulting density will be higher in overlapping regions.
- * @param {Array<Object>} shapes 
- */
 export function sampleFaultyUnion(shapes) {
   const weights = shapes.map(s => s.area ?? s.volume ?? 1);
   const totalWeight = weights.reduce((a, b) => a + b, 0);
-
   let r = Math.random() * totalWeight;
-  for (let i = 0; i < shapes.length; i++) {
-    if ((r -= weights[i]) <= 0) {
-      return shapes[i].sample();
-    }
+  for (let s of shapes) {
+    if ((r -= (s.area ?? s.volume ?? 1)) <= 0) return s.sample();
   }
-  return shapes[shapes.length - 1].sample();
+  return shapes[0].sample();
 }

@@ -1,7 +1,3 @@
-/**
- * point_data.js
- */
-
 const DEFAULT_PASSIVE_COUNT = 100000;
 
 const STAR_PALETTE = [
@@ -14,7 +10,7 @@ const STAR_PALETTE = [
 
 const getRandomColor = () => STAR_PALETTE[Math.floor(Math.random() * STAR_PALETTE.length)];
 
-const getStarRadius = () => (
+const getGalaxyRadius = () => (
   Math.random() > 0.2 
     ? 50 + Math.random() * 100 
     : 3 + Math.random() * 50
@@ -29,7 +25,7 @@ function fillPassivePoints(positions, colors) {
     
     const theta = Math.random() * 2 * Math.PI;
     const phi = Math.acos(2 * Math.random() - 1);
-    const r = getStarRadius();
+    const r = getGalaxyRadius();
 
     positions[idx]     = r * Math.sin(phi) * Math.cos(theta);
     positions[idx + 1] = r * Math.sin(phi) * Math.sin(theta);
@@ -48,6 +44,7 @@ export function createPointData(regl, {
   passive = false,
   samplers = [], 
   counts = [],
+  sceneColors = []
 } = {}) {
 
   let totalPoints = 0;
@@ -70,6 +67,8 @@ export function createPointData(regl, {
     for (let i = 0; i < activeCount; i++) {
       const sampleFn = samplers[i];
       const n = counts[i];
+
+      const shapeColor = sceneColors[i] || [1.0, 1.0, 1.0];
   
       for (let j = 0; j < n; j++) {
         const { x, y, z } = sampleFn();
@@ -79,8 +78,9 @@ export function createPointData(regl, {
         positions[idx + 1] = y;
         positions[idx + 2] = z;
         
-        // Constant white for active shapes
-        colors[idx] = colors[idx+1] = colors[idx+2] = 1.0;
+        colors[idx]     = shapeColor[0];
+        colors[idx + 1] = shapeColor[1];
+        colors[idx + 2] = shapeColor[2];
       }
       offset += n;
     }

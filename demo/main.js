@@ -2,15 +2,13 @@
 (c) 2025 Tsogt
 This code is licensed under the MIT License.
 Created: 12/20/2025
-Last modified: 12/22/2025
+Last modified: 12/26/2025
  */
 import createREGL from "https://esm.sh/regl";
 import { Camera } from "./camera.js";
 import { createPointData } from "./point_data.js";
 import { createPointRenderer } from "./renderer.js";
 import { SCENES, getSceneConfig } from "./scene.js";
-import circle_point_frag from "./shaders/circle.point.frag.js";
-import square_point_frag from "./shaders/square.point.frag.js"
 
 // ---------------- Canvas & REGL ----------------
 const canvas = document.getElementById("c");
@@ -21,7 +19,7 @@ const regl = createREGL({
     alpha: false, 
     powerPreference: "high-performance"
   },
-  // Use the screen's density but don't go over 2.0 to save the GPU
+
   pixelRatio: Math.min(window.devicePixelRatio, 2.0) 
 });
 
@@ -43,13 +41,8 @@ let currentSceneIndex = 0;
 let pointData = createPointData(regl, getSceneConfig(currentSceneIndex).config);
 let render = createPointRenderer(regl, pointData);
 
-const SHADERS = {
-  circle: circle_point_frag,
-  square: square_point_frag,
-};
 
 function loadScene(index) {
-  // CRITICAL: Set pointData to null first so the frame loop stops drawing
   const oldData = pointData;
   pointData = null;
 
@@ -76,13 +69,14 @@ let currentBrush = 'circle';
 
 window.addEventListener("keydown", (e) => {
   if (e.key.toLowerCase() === "b") { // 'B' for Brush
-  
-    if (currentBrush === 'circle') {
+    if (currentBrush === 'basic') {
+        currentBrush = 'circle';
+    } else if (currentBrush === 'circle') {
         currentBrush = 'square';
     } else if (currentBrush === 'square') {
         currentBrush = 'star';
     } else {
-        currentBrush = 'circle';
+        currentBrush = 'basic';
     }
     
     console.log(`✨ Brush swapped to: ${currentBrush}`);
@@ -101,7 +95,6 @@ regl.frame(({ time }) => {
 
   render(camera, time, currentBrush);
 });
-
 
 
 //----------------- Screenshot ----------------
@@ -131,7 +124,7 @@ window.addEventListener('keydown', (e) => {
       link.click();
       document.body.removeChild(link);
       
-      console.log("🌌 Galaxy captured!");
+      console.log("🌌 Captured!");
     } catch (err) {
       console.error("Capture failed:", err);
     }

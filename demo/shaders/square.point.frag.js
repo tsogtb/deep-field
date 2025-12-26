@@ -15,7 +15,7 @@ void main() {
         uv.x * sinA + uv.y * cosA
     );
     
-    // Square Distance logic (using rotated coordinates)
+    // Square Distance
     float dist = max(abs(rotatedUV.x), abs(rotatedUV.y));
     if (dist > 0.5) discard;
 

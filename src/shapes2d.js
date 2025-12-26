@@ -1,60 +1,53 @@
 /**
- * shapes2d.js
- * * Uniform sampling of 2D geometric shapes (filled areas) and sectors.
- * All classes provide:
- * - .sample(): returns a single point { x, y, z } sampled uniformly
- * - .contains(point): returns true if the point is inside the shape
- * - .area: numeric area, used for area-weighted sampling in composite shapes
- * - .bbox: bounding box for fast collision pre-filtering
- */
-
-/**
  * EllipseSector2D
- * * Represents a sector (pie slice) of an ellipse.
- * Provides uniform sampling and point containment methods.
- * * @example
- * const sector = new EllipseSector2D({ x: 0, y: 0 }, 3, 2, 0, Math.PI / 2);
- * const p = sector.sample();
+ * The base class for all elliptical and circular shapes.
  */
 export class EllipseSector2D {
   /**
-   * @param {{x: number, y: number, z?: number}} center - Center coordinates
-   * @param {number} [rx=1] - Horizontal radius
-   * @param {number} [ry=1] - Vertical radius
-   * @param {number} [startAngle=0] - Start angle in radians
-   * @param {number} [endAngle=Math.PI*2] - End angle in radians
+   * @param {{x: number, y: number, z?: number}} center - Center coordinates.
+   * @param {number} [outerRx=1] - Outer horizontal radius.
+   * @param {number} [outerRy=1] - Outer vertical radius.
+   * @param {number} [startAngle=0] - Start angle in radians.
+   * @param {number} [endAngle=Math.PI*2] - End angle in radians.
+   * @param {number} [innerRx=0] - Inner horizontal radius for hollow shapes.
+   * @param {number} [innerRy=0] - Inner vertical radius for hollow shapes.
    */
-  constructor(center, rx = 1, ry = 1, startAngle = 0, endAngle = 2 * Math.PI) {
+  constructor(center, outerRx = 1, outerRy = 1, startAngle = 0, endAngle = 2 * Math.PI, innerRx = 0, innerRy = 0) {
     this.center = center;
-    this.rx = rx;
-    this.ry = ry;
+    this.outerRx = outerRx;
+    this.outerRy = outerRy;
+    this.innerRx = innerRx;
+    this.innerRy = innerRy;
     this.start = startAngle;
     this.end = endAngle;
 
     let deltaTheta = endAngle - startAngle;
     if (deltaTheta < 0) deltaTheta += 2 * Math.PI;
-    
-    /** Area of the ellipse sector */
-    this.area = 0.5 * rx * ry * deltaTheta;
+    this.deltaTheta = deltaTheta;
+
+    const outerArea = 0.5 * outerRx * outerRy * deltaTheta;
+    const innerArea = 0.5 * innerRx * innerRy * deltaTheta;
+    this.area = outerArea - innerArea;
 
     this.bbox = {
-      minX: center.x - rx, maxX: center.x + rx,
-      minY: center.y - ry, maxY: center.y + ry
+      minX: center.x - outerRx, maxX: center.x + outerRx,
+      minY: center.y - outerRy, maxY: center.y + outerRy
     };
   }
 
-  /**
-   * Check if a point is inside the ellipse sector.
-   * @param {{x: number, y: number}} p - Point to test
-   * @param {number} [epsilon=1e-9] - Precision tolerance
-   * @returns {boolean}
-   */
   contains(p, epsilon = 1e-9) {
-    const dx = (p.x - this.center.x) / this.rx;
-    const dy = (p.y - this.center.y) / this.ry;
-    if (dx * dx + dy * dy > 1 + epsilon) return false;
+    const dx = p.x - this.center.x;
+    const dy = p.y - this.center.y;
+    
+    // Standard elliptical distance check
+    const distSq = (dx * dx) / (this.outerRx * this.outerRx) + (dy * dy) / (this.outerRy * this.outerRy);
+    const innerDistSq = (this.innerRx <= 0 || this.innerRy <= 0) 
+      ? 0 
+      : (dx * dx) / (this.innerRx * this.innerRx) + (dy * dy) / (this.innerRy * this.innerRy);
 
-    let theta = Math.atan2(dy * this.rx, dx * this.ry); 
+    if (distSq > 1 + epsilon || (this.innerRx > 0 && innerDistSq < 1 - epsilon)) return false;
+
+    let theta = Math.atan2(dy / this.outerRy, dx / this.outerRx); 
     if (theta < 0) theta += 2 * Math.PI;
 
     if (this.start <= this.end) {
@@ -64,67 +57,124 @@ export class EllipseSector2D {
     }
   }
 
-  /**
-   * Sample a point uniformly inside the ellipse sector.
-   * @returns {{x: number, y: number, z: number}}
-   */
   sample() {
-    let deltaTheta = this.end - this.start;
-    if (deltaTheta < 0) deltaTheta += 2 * Math.PI;
-  
-    const t = (this.start + Math.random() * deltaTheta) % (2 * Math.PI);
-    const u = Math.sqrt(Math.random());
+    const t = (this.start + Math.random() * this.deltaTheta) % (2 * Math.PI);
+    const rScaling = Math.sqrt(Math.random() * (1 - Math.pow(this.innerRx/this.outerRx, 2)) + Math.pow(this.innerRx/this.outerRx, 2));
+
     return {
-      x: this.center.x + u * this.rx * Math.cos(t),
-      y: this.center.y + u * this.ry * Math.sin(t),
+      x: this.center.x + rScaling * this.outerRx * Math.cos(t),
+      y: this.center.y + rScaling * this.outerRy * Math.sin(t),
       z: this.center.z ?? 0
     };
   }
 }
 
+/**
+ * CircleSector2D
+ * Optimized: Uses circular radius math instead of elliptical division.
+ */
+export class CircleSector2D extends EllipseSector2D {
+  /**
+   * @param {{x: number, y: number, z?: number}} center
+   * @param {number} [radius=1]
+   * @param {number} [startAngle=0]
+   * @param {number} [endAngle=Math.PI*2]
+   * @param {number} [innerRadius=0]
+   */
+  constructor(center, radius = 1, startAngle = 0, endAngle = 2 * Math.PI, innerRadius = 0) {
+    super(center, radius, radius, startAngle, endAngle, innerRadius, innerRadius);
+    this.radius = radius;
+    this.innerRadius = innerRadius;
+    this.rOuterSq = radius * radius;
+    this.rInnerSq = innerRadius * innerRadius;
+  }
 
+  // OVERRIDE: Faster circular distance check (x² + y² < r²)
+  contains(p, epsilon = 1e-9) {
+    const dx = p.x - this.center.x;
+    const dy = p.y - this.center.y;
+    const d2 = dx * dx + dy * dy;
+
+    if (d2 > this.rOuterSq + epsilon || d2 < this.rInnerSq - epsilon) return false;
+
+    let theta = Math.atan2(dy, dx); 
+    if (theta < 0) theta += 2 * Math.PI;
+
+    if (this.start <= this.end) {
+      return theta >= (this.start - epsilon) && theta <= (this.end + epsilon);
+    } else {
+      return theta >= (this.start - epsilon) || theta <= (this.end + epsilon);
+    }
+  }
+}
+
+/**
+ * Circle2D
+ * Optimized: Skips all angular and trigonometric logic.
+ */
+export class Circle2D extends CircleSector2D {
+  /**
+   * @param {{x: number, y: number, z?: number}} center
+   * @param {number} [radius=1]
+   * @param {number} [innerRadius=0]
+   */
+  constructor(center, radius = 1, innerRadius = 0) {
+    super(center, radius, 0, 2 * Math.PI, innerRadius);
+  }
+
+  // OVERRIDE: Pure radial check; ignores theta entirely
+  contains(p, epsilon = 1e-9) {
+    const dx = p.x - this.center.x;
+    const dy = p.y - this.center.y;
+    const d2 = dx * dx + dy * dy;
+    return d2 <= this.rOuterSq + epsilon && d2 >= this.rInnerSq - epsilon;
+  }
+
+  // OVERRIDE: Simplest uniform circle sampling
+  sample() {
+    const t = Math.random() * 2 * Math.PI;
+    const r = Math.sqrt(Math.random() * (this.rOuterSq - this.rInnerSq) + this.rInnerSq);
+    return {
+      x: this.center.x + r * Math.cos(t),
+      y: this.center.y + r * Math.sin(t),
+      z: this.center.z ?? 0
+    };
+  }
+}
 
 /**
  * Ellipse2D
- * Represents a filled 2D ellipse.
+ * Optimized: Removes angular sector checks.
  */
 export class Ellipse2D extends EllipseSector2D {
   /**
    * @param {{x: number, y: number, z?: number}} center
    * @param {number} [rx=1]
    * @param {number} [ry=1]
+   * @param {number} [innerRx=0]
+   * @param {number} [innerRy=0]
    */
-  constructor(center, rx = 1, ry = 1) {
-    super(center, rx, ry, 0, 2 * Math.PI);
+  constructor(center, rx = 1, ry = 1, innerRx = 0, innerRy = 0) {
+    super(center, rx, ry, 0, 2 * Math.PI, innerRx, innerRy);
+  }
+
+  // OVERRIDE: Elliptical check without sector logic
+  contains(p, epsilon = 1e-9) {
+    const dx = p.x - this.center.x;
+    const dy = p.y - this.center.y;
+    const distSq = (dx * dx) / (this.outerRx * this.outerRx) + (dy * dy) / (this.outerRy * this.outerRy);
+    
+    if (this.innerRx > 0) {
+      const innerDistSq = (dx * dx) / (this.innerRx * this.innerRx) + (dy * dy) / (this.innerRy * this.innerRy);
+      return distSq <= 1 + epsilon && innerDistSq >= 1 - epsilon;
+    }
+    return distSq <= 1 + epsilon;
   }
 }
-
-/**
- * CircleSector2D
- * Represents a pie slice of a circle.
- */
-export class CircleSector2D extends EllipseSector2D {
-  constructor(center, radius = 1, startAngle = 0, endAngle = 2 * Math.PI) {
-    super(center, radius, radius, startAngle, endAngle);
-    this.radius = radius;
-  }
-}
-
-/**
- * Circle2D
- * Represents a filled 2D circle.
- */
-export class Circle2D extends CircleSector2D {
-  constructor(center, radius = 1) {
-    super(center, radius, 0, 2 * Math.PI);
-  }
-}
-
-
 
 /**
  * Triangle2D
- * Represents a filled 2D triangle.
+ * Represents a filled triangle.
  */
 export class Triangle2D {
   /**
@@ -145,7 +195,7 @@ export class Triangle2D {
     const { a, b, c } = this;
     const detT = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
     if (Math.abs(detT) < 1e-15) return false;
-    
+    // Barycentric coordinates
     const l1 = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / detT;
     const l2 = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / detT;
     const l3 = 1 - l1 - l2;
@@ -153,8 +203,7 @@ export class Triangle2D {
   }
 
   sample() {
-    let u = Math.random();
-    let v = Math.random();
+    let u = Math.random(), v = Math.random();
     if (u + v > 1) { u = 1 - u; v = 1 - v; }
     return {
       x: this.a.x + u * (this.b.x - this.a.x) + v * (this.c.x - this.a.x),
@@ -166,7 +215,7 @@ export class Triangle2D {
 
 /**
  * Rectangle2D
- * Represents a filled 2D rectangle.
+ * Represents a filled rectangle.
  */
 export class Rectangle2D {
   /**
@@ -186,9 +235,8 @@ export class Rectangle2D {
   }
 
   contains(p, epsilon = 1e-9) {
-    const dx = Math.abs(p.x - this.center.x);
-    const dy = Math.abs(p.y - this.center.y);
-    return dx <= (this.width / 2) + epsilon && dy <= (this.height / 2) + epsilon;
+    return Math.abs(p.x - this.center.x) <= (this.width / 2) + epsilon && 
+           Math.abs(p.y - this.center.y) <= (this.height / 2) + epsilon;
   }
 
   sample() {
@@ -200,52 +248,106 @@ export class Rectangle2D {
   }
 }
 
-
-
 /**
  * Polygon2D
- * Represents a filled convex 2D polygon.
+ * Handles convex and concave polygons via Ear Clipping.
+ * Optimized O(log N) sampling via Prefix Sums + Binary Search.
  */
 export class Polygon2D {
   /**
-   * @param {Array<{x: number, y: number, z?: number}>} vertices - Ordered vertices
+   * @param {Array<{x: number, y: number, z?: number}>} vertices - Ordered points.
    */
   constructor(vertices) {
     if (!vertices || vertices.length < 3) throw new Error("Polygon needs >= 3 vertices");
     this.vertices = vertices;
     this.triangles = [];
     this.area = 0;
-
+    
+    // 1. Generate internal mesh
+    this.triangulate(vertices);
+    
+    // 2. Setup area-weighted distribution
+    let currentTotalArea = 0;
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-
-    // Fan triangulation (assumes convexity)
-    for (let i = 1; i < vertices.length - 1; i++) {
-      const t = new Triangle2D(vertices[0], vertices[i], vertices[i + 1]);
-      this.triangles.push(t);
-      this.area += t.area;
+    for (const t of this.triangles) {
+      currentTotalArea += t.area;
+      t.cumulativeArea = currentTotalArea;
     }
+    this.area = currentTotalArea;
 
+    // 3. Setup spatial bounds
     for (const v of vertices) {
-      if (v.x < minX) minX = v.x; if (v.x > maxX) maxX = v.x;
-      if (v.y < minY) minY = v.y; if (v.y > maxY) maxY = v.y;
+      minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x);
+      minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y);
     }
     this.bbox = { minX, maxX, minY, maxY };
   }
 
-  contains(p, epsilon = 1e-9) {
-    if (p.x < this.bbox.minX - epsilon || p.x > this.bbox.maxX + epsilon || 
-        p.y < this.bbox.minY - epsilon || p.y > this.bbox.maxY + epsilon) {
-      return false;
+  /**
+   * Samples a point from the polygon by picking a triangle (Binary Search)
+   * and then picking a point within that triangle.
+   */
+  sample() {
+    const r = Math.random() * this.area;
+    let low = 0, high = this.triangles.length - 1;
+    while (low < high) {
+      const mid = (low + high) >>> 1;
+      if (this.triangles[mid].cumulativeArea < r) low = mid + 1;
+      else high = mid;
     }
-    return this.triangles.some(t => t.contains(p, epsilon));
+    return this.triangles[low].sample();
   }
 
-  sample() {
-    let r = Math.random() * this.area;
-    for (const t of this.triangles) {
-      if (r <= t.area) return t.sample();
-      r -= t.area;
+  /**
+   * Implementation of the Ear Clipping algorithm for triangulation.
+   * @private
+   */
+  triangulate(vertices) {
+    const pts = [...vertices];
+    if (this.getSignedArea(pts) < 0) pts.reverse(); // Ensure CCW
+    while (pts.length > 3) {
+      let earFound = false;
+      for (let i = 0; i < pts.length; i++) {
+        const prev = pts[(i + pts.length - 1) % pts.length];
+        const curr = pts[i];
+        const next = pts[(i + 1) % pts.length];
+        if (this.isEar(prev, curr, next, pts)) {
+          this.triangles.push(new Triangle2D(prev, curr, next));
+          pts.splice(i, 1);
+          earFound = true;
+          break;
+        }
+      }
+      if (!earFound) break; 
     }
-    return this.triangles[this.triangles.length - 1].sample();
+    if (pts.length === 3) this.triangles.push(new Triangle2D(pts[0], pts[1], pts[2]));
+  }
+
+  /** @private */
+  isEar(p1, p2, p3, allPoints) {
+    const area = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
+    if (area <= 0) return false;
+    const tempTri = new Triangle2D(p1, p2, p3);
+    for (const p of allPoints) {
+      if (p === p1 || p === p2 || p === p3) continue;
+      if (tempTri.contains(p)) return false;
+    }
+    return true;
+  }
+
+  /** @private */
+  getSignedArea(pts) {
+    let area = 0;
+    for (let i = 0; i < pts.length; i++) {
+      const j = (i + 1) % pts.length;
+      area += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+    }
+    return area / 2;
+  }
+
+  contains(p, epsilon = 1e-9) {
+    if (p.x < this.bbox.minX - epsilon || p.x > this.bbox.maxX + epsilon || 
+        p.y < this.bbox.minY - epsilon || p.y > this.bbox.maxY + epsilon) return false;
+    return this.triangles.some(t => t.contains(p, epsilon));
   }
 }
