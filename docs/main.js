@@ -6,10 +6,10 @@ Last modified: 12/27/2025
  */
 import createREGL from "https://esm.sh/regl";
 import { mat4 } from "https://esm.sh/gl-matrix";
-import { Camera } from "./camera.js";
-import { createPointData } from "./point_data.js";
-import { createPointRenderer } from "./renderer.js";
-import { SCENES, getSceneConfig } from "./scene_manager.js";
+import { Camera } from "/deep-field/camera.js";
+import { createPointData } from "/deep-field/point_data.js";
+import { createPointRenderer } from "/deep-field/renderer.js";
+import { SCENES, getSceneConfig } from "/deep-field/scene_manager.js";
 
 // ---------------- Canvas & REGL ----------------
 const canvas = document.getElementById("c");
