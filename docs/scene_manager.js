@@ -1,4 +1,4 @@
-import { christmasTreeConfig } from "./scenes/christmas_tree.js";
+import { christmasTreeConfig } from "/deep-field/scenes/christmas_tree.js";
 
 export const SCENES = [
   christmasTreeConfig,

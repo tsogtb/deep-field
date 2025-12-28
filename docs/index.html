@@ -1,0 +1,132 @@
+<!--
+(c) 2025 Tsogt
+This code is licensed under the MIT License.
+Created: 12/20/2025
+Last modified: 12/27/2025
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#050505">
+    <meta property="og:title" content="Deepfield JS">
+    <meta property="og:description" content="An interactive particle universe built with REGL.">
+    <meta property="og:image" content="/assets/deepfield.png">
+    <title>Deepfield JS</title>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050505; /* Slightly off-black for depth */
+            touch-action: none;
+            user-select: none; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            outline: none;
+        }
+
+        /* Keyboard & Credit Hint */
+        .hint {
+            position: fixed;
+            bottom: 20px;       /* Increased for better air gap from screen edge */
+            left: 20px;         /* Matches the 20px top-left telemetry offset */
+            color: rgba(255, 255, 255, 0.4); 
+            font-size: 10px;
+            pointer-events: none;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-family: monospace; /* Keep it consistent with the telemetry */
+            display: flex;
+            align-items: center;
+        }
+
+        .author-credit {
+            margin-left: 20px;
+            opacity: 0.6;
+            border-left: 1px solid rgba(255, 255, 255, 0.2); /* Use a real line for better spacing */
+            padding-left: 20px;
+            text-transform: none; 
+        }
+
+        #mobile-controls {
+        position: fixed;  
+        bottom: 60px;      
+        right: 20px;       
+        z-index: 2000;      
+        display: flex;      
+        gap: 10px;         
+        }
+        @media (pointer: fine) {
+          #mobile-controls {
+              display: none;
+          }
+        }
+        #mobile-controls button {
+        background-color: rgba(255, 255, 255, 0.3); /* semi-transparent like hint overlay */
+        color: rgba(255, 255, 255, 0.8);
+        border: none;
+        border-radius: 2px;
+        padding: 6px 10px;
+        font-family: monospace;
+        font-size: 11px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        }
+
+        #mobile-controls button:hover {
+            background: rgba(0, 0, 0, 0.1); /* subtle hover highlight */
+        }
+    </style>
+</head>
+<body>
+      <div class="hint">
+        [N] Next • [B] Brush • [J] Snap 
+        <span class="author-credit">Developed by Tsogt</span>
+    </div>
+    <canvas id="c"></canvas>
+
+    <div id="camera-overlay" style="
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    padding: 10px;
+    font-family: monospace;
+    border-radius: 4px;
+    pointer-events: none; /* Allows to click through it */
+    z-index: 1000;
+    "></div>
+
+    <div id="mobile-controls">
+      <button id="btn-home">Re-center</button>
+    </div>
+  
+
+    <script type="module" src="main.js"></script>
+    <script>
+        // Auto-focus the canvas so keyboard shortcuts work instantly
+        window.onload = () => {
+          const canvas = document.getElementById('c');
+          canvas.focus();
+          window.addEventListener('click', () => canvas.focus());
+        };
+    </script>
+</body>
+</html>

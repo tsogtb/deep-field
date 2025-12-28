@@ -1,6 +1,6 @@
-import { Path1D } from "../../src/curves1d.js";
-import { Cone3D } from "../../src/shapes3d.js"; 
-import { CompositeShape } from "../../src/composite_shapes.js";
+import { Path1D } from "/deep-field/src/curves1d.js";
+import { Cone3D } from "/deep-field/src/shapes3d.js"; 
+import { CompositeShape } from "/deep-field/src/composite_shapes.js";
 
 const LETTER_POINTS = 50; 
 const POINTS_PER_CONE = 350; 
@@ -20,9 +20,9 @@ export const GIZMO_DATA = (() => {
   const labelCol = [];
 
   const axes = [
-    { name: 'x', dir: [1, 0, 0], color: [0.85, 0.2, 0.3] },
-    { name: 'y', dir: [0, 1, 0], color: [0.1, 0.8, 0.5] },
-    { name: 'z', dir: [0, 0, 1], color: [0.2, 0.6, 1.0] }
+    { name: 'x', dir: [1, 0, 0], color: [1.0, 0.35, 0.4] },
+    { name: 'y', dir: [0, 1, 0], color: [0.3, 1.0, 0.6] },
+    { name: 'z', dir: [0, 0, 1], color: [0.2, 0.7, 1.0] }
   ];
 
   axes.forEach(axis => {
@@ -38,7 +38,12 @@ export const GIZMO_DATA = (() => {
 
     for (let i = 0; i < POINTS_PER_AXIS; i++) {
       const p = stemPath.sample(); 
-      geoPos.push([p.x, p.y, p.z]);
+      const jitter = 0.005;
+      geoPos.push([
+        p.x + (Math.random()-0.5) * jitter, 
+        p.y + (Math.random()-0.5) * jitter, 
+        p.z + (Math.random()-0.5) * jitter
+      ]);
       geoCol.push(axis.color);
     }
     
@@ -58,6 +63,8 @@ export const GIZMO_DATA = (() => {
     const thickness = 0.001; 
     const innerCone = new Cone3D(
       { x: 0, y: 0, z: STEM_LENGTH - 2.02 * CONE_HEIGHT }, 
+      CONE_RADIUS,
+      CONE_HEIGHT,
       CONE_RADIUS - thickness, 
       CONE_HEIGHT - thickness
     );
@@ -65,11 +72,15 @@ export const GIZMO_DATA = (() => {
     const hollowCone = new CompositeShape('difference', [outerCone, innerCone]);
 
     for (let i = 0; i < POINTS_PER_CONE; i++) {
-      const p = hollowCone.sample(); 
+      const p = innerCone.sample(); 
       
-      if (axis.name === 'x') geoPos.push([p.z, p.y, p.x]); 
-      else if (axis.name === 'y') geoPos.push([p.x, p.z, p.y]);
-      else geoPos.push([p.x, p.y, p.z]);
+      if (axis.name === 'x') {
+        geoPos.push([p.z, p.y, -p.x]); // Point cone along +X
+      } else if (axis.name === 'y') {
+        geoPos.push([p.x, p.z, -p.y]); // Point cone along +Y
+      } else {
+        geoPos.push([p.x, p.y, p.z]);  // Point cone along +Z
+      }
       
       geoCol.push(axis.color);
     }
