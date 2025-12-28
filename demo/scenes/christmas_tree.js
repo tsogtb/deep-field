@@ -1,9 +1,8 @@
-import { Cone3D, Cylinder3D, Box3D } from "/deep-field/src/shapes3d.js";
-import { Path1D, conicHelix } from "/deep-field/src/curves1d.js";
-import { RotatedShape } from "/deep-field/src/rotated_shape.js";
-import { Polygon2D, Circle2D, Rectangle2D } from "/deep-field/src/shapes2d.js";
-import { CompositeShape } from "/deep-field/src/composite_shapes.js";
-import { TranslatedShape } from "/deep-field/src/translated_shape.js";
+import { Cone3D, Cylinder3D, Box3D } from "../src/shapes3d.js";
+import { Path1D, conicHelix } from "../src/curves1d.js";
+import { RotatedShape } from "../src/rotated_shape.js";
+import { Polygon2D, Circle2D, Rectangle2D } from "../src/shapes2d.js";
+import { CompositeShape } from "../src/composite_shapes.js";
 
 function createStarVertices(centerX, centerY, outerRadius, innerRadius, points = 5) {
   const vertices = [];

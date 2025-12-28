@@ -1,11 +1,11 @@
-import point_vert from "/deep-field/shaders/point.vert.js";
-import circle_point_frag from "/deep-field/shaders/circle.point.frag.js";
-import square_point_frag from "/deep-field/shaders/square.point.frag.js"
-import star_point_frag from "/deep-field/shaders/star.point.frag.js";
-import basic_vert from "/deep-field/shaders/basic.vert.js";
-import basic_frag from "/deep-field/shaders/basic.frag.js";
-import gizmoVert from "/deep-field/shaders/gizmo.vert.js";
-import gizmoFrag from "/deep-field/shaders/gizmo.frag.js";
+import point_vert from "./shaders/point.vert.js";
+import circle_point_frag from "./shaders/circle.point.frag.js";
+import square_point_frag from "./shaders/square.point.frag.js"
+import star_point_frag from "./shaders/star.point.frag.js";
+import basic_vert from "./shaders/basic.vert.js";
+import basic_frag from "./shaders/basic.frag.js";
+import gizmoVert from "./shaders/gizmo.vert.js";
+import gizmoFrag from "./shaders/gizmo.frag.js";
 
 const depth_gizmo = { 
   enable: false, 

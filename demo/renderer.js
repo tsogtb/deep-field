@@ -1,7 +1,7 @@
-import background_vert from "/deep-field/shaders/background.vert.js";
-import background_frag from "/deep-field/shaders/background.frag.js";
-import { BASIC, CIRCLE, SQUARE, STAR, GIZMO } from "/deep-field/brushes.js";
-import { GIZMO_DATA } from "/deep-field/meshes/gizmo.js";
+import background_vert from "./shaders/background.vert.js";
+import background_frag from "./shaders/background.frag.js";
+import { BASIC, CIRCLE, SQUARE, STAR, GIZMO } from "./brushes.js";
+import { GIZMO_DATA } from "./meshes/gizmo.js";
 
 function createGizmoGroup(regl) {
   const uAnchor = [0.92, 0.85]; 
