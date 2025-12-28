@@ -1,15 +1,14 @@
-import background_vert from "./shaders/background.vert.js";
-import background_frag from "./shaders/background.frag.js";
-import { BASIC, CIRCLE, SQUARE, STAR, GIZMO } from "./brushes.js";
-import { createGizmoGroup } from "./meshes/gizmo.js";
-
+import background_vert from "../shaders/background.vert.js";
+import background_frag from "../shaders/background.frag.js";
+import { BASIC, CIRCLE, SQUARE, STAR, GIZMO } from "../data/brushes.js";
+import { createGizmoGroup } from "../meshes/gizmo.js";
 
 export function createPointRenderer(regl) {
   const globalScope = regl({
     uniforms: {
       uTime: regl.prop("uTime"),
-      uAspect: (context) => context.viewportWidth / context.viewportHeight,
-      uViewportHeight: (context) => context.viewportHeight,
+      uAspect: (ctx) => ctx.viewportWidth / ctx.viewportHeight,
+      uViewportHeight: (ctx) => ctx.viewportHeight,
     }
   });
 
@@ -57,6 +56,7 @@ export function createPointRenderer(regl) {
     globalScope({ uTime: time }, () => {
       
       drawBackground({ colorTop: [0, 0, 0], colorBottom: [0, 0, 0] });
+
       passiveObjects.forEach(obj => {
         brushes.circle({
           projection: camera.projection,
@@ -69,9 +69,9 @@ export function createPointRenderer(regl) {
         });
       });
 
-      const draw = brushes[brushType] || brushes.basic;
+      const drawActive = brushes[brushType] || brushes.basic;
       activeObjects.forEach(obj => {
-        draw({
+        drawActive({
           projection: camera.projection,
           view: camera.view,
           model: obj.modelMatrix, 

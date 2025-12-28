@@ -1,7 +1,7 @@
-import { christmasTreeConfig } from "./scenes/christmas_tree.js";
+import { christmasTreeConfig } from "../scenes/christmas_tree.js";
 
 export const SCENES = [
-  christmasTreeConfig,
+  christmasTreeConfig
 ];
 
 export function getSceneConfig(index) {
