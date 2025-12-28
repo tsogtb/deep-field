@@ -1,4 +1,4 @@
-import { Vec3 } from "../math/vec3"
+import { Vec3 } from "../math/vec3.js"
 
 export interface BaseState {
   t: number

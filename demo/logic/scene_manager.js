@@ -1,7 +1,9 @@
 import { christmasTreeConfig } from "../scenes/christmas_tree.js";
+import { orbitSceneConfig } from "../scenes/orbit_physics.js";
 
 export const SCENES = [
-  christmasTreeConfig
+  christmasTreeConfig,
+  orbitSceneConfig,
 ];
 
 export function getSceneConfig(index) {

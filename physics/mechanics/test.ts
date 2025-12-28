@@ -1,7 +1,7 @@
-import { Derivative } from "../core/derivative";
-import { ParticleState } from "../core/state";
-import { gravityCentral } from "./gravity-central";
-import { integrateEulerParticles } from "./integrators";
+import { Derivative } from "../core/derivative.js";
+import { ParticleState } from "../core/state.js";
+import { gravityCentral } from "./gravity-central.js";
+import { integrateEulerParticles } from "./integrators.js";
 
 const MASS = 1.0
 const dt = 0.01

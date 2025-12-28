@@ -1,5 +1,5 @@
-import { Derivative } from "./derivative";
-import { BaseState } from "./state";
+import { Derivative } from "./derivative.js";
+import { BaseState } from "./state.js";
 
 export function integrateEuler<S extends BaseState>(
   state: S,

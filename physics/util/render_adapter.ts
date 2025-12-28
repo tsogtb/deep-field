@@ -1,5 +1,5 @@
-import { Vec3 } from "../math/vec3"
-import { ParticleState } from "../core/state"
+import { Vec3 } from "../math/vec3.js"
+import { ParticleState } from "../core/state.js"
 
 export function toFloat32(vecs: Vec3[]): Float32Array {
   const arr = new Float32Array(vecs.length * 3)

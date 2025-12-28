@@ -23,6 +23,8 @@
     "LICENSE"
   ],
   "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
     "start": "npm run demo",
     "demo": "npx live-server --open=demo",
     "dev": "npm run demo",
@@ -31,6 +33,8 @@
     "stress": "node test/stress.test.js"
   },
   "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.3.0",
     "vitest": "^4.0.16"
   }
 }

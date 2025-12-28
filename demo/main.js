@@ -47,9 +47,11 @@ regl.frame(({ time }) => {
   
   regl.clear({ color: [0.02, 0.02, 0.02, 1], depth: 1 });
 
-  animatePassiveObjects(passiveObjects, time);
-
   const sceneInfo = getSceneConfig(sceneController.currentSceneIndex);
+  const activePassiveLayer = (sceneInfo.name === "orbitSimulation") ? [] : passiveObjects;
+
+  animatePassiveObjects(activePassiveLayer, time);
+
   if (sceneInfo.animate) {
     sceneInfo.animate(sceneController.pointData, time, mat4);
   }
@@ -59,6 +61,6 @@ regl.frame(({ time }) => {
     time, 
     sceneController.currentBrush, 
     sceneController.pointData, 
-    passiveObjects
+    activePassiveLayer,
   );
 });
