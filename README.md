@@ -1,6 +1,6 @@
 # 🌌 deepfield
 
-**A modular JavaScript framework for procedural geometry, particle physics, and GPU-based visualization.**
+**A modular JavaScript framework for procedural geometry, particle dynamics, and GPU-based visualization.**
 
 ![deepfield Banner](./assets/deepfield.png)
 
@@ -28,7 +28,7 @@
 - **3D Volumes:** Spheres, ellipsoids, boxes, cones, cylinders, shells.
 - **CSG Operations:** Union, intersection, and difference with uniform density guarantees.
 
-### Particle Physics
+### Particle Dynamics
 - **Generic State System:** Typed particle states with position, velocity, and optional acceleration.
 - **Force Fields:** Pluggable derivatives (e.g. central gravity).
 - **Integrators:** Time-stepping via Euler (with room for Verlet / RK4).
