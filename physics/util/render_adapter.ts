@@ -11,7 +11,7 @@ export function toFloat32(vecs: Vec3[]): Float32Array {
   return arr
 }
 
-function syncParticlesToBuffer(
+export function syncParticlesToBuffer(
   state: ParticleState,
   buffer: { subdata(data: Float32Array): void }
 ) {

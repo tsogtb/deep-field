@@ -1,6 +1,5 @@
 /**
  * EllipsoidSector3D
- * The master class for all ellipsoidal/spherical shapes and shells.
  */
 export class EllipsoidSector3D {
   constructor(center, rx=1, ry=1, rz=1, startTheta=0, endTheta=2*Math.PI, startPhi=0, endPhi=Math.PI, innerRx=0, innerRy=0, innerRz=0) {
@@ -14,7 +13,6 @@ export class EllipsoidSector3D {
     if (deltaTheta < 0) deltaTheta += 2 * Math.PI;
     this.deltaTheta = deltaTheta;
 
-    // Solid angle fraction
     this.cosStartPhi = Math.cos(startPhi);
     this.cosEndPhi = Math.cos(endPhi);
     const solidAngle = deltaTheta * (this.cosStartPhi - this.cosEndPhi);
@@ -42,7 +40,6 @@ export class EllipsoidSector3D {
       if (idnx * idnx + idny * idny + idnz * idnz < 1 - epsilon) return false;
     }
 
-    // Azimuth check (Theta)
     let theta = Math.atan2(dy, dx); 
     if (theta < 0) theta += 2 * Math.PI;
     const inTheta = (this.startTheta <= this.endTheta) 
@@ -50,14 +47,12 @@ export class EllipsoidSector3D {
       : (theta >= this.startTheta - epsilon || theta <= this.endTheta + epsilon);
     if (!inTheta) return false;
 
-    // Polar check (Phi) - Optimized: uses Cosine comparison to avoid acos()
     const cosP = dz / (Math.sqrt(dx*dx + dy*dy + dz*dz) + 1e-15);
     return cosP <= this.cosStartPhi + epsilon && cosP >= this.cosEndPhi - epsilon;
   }
 
   sample() {
-    // Uniform volume scaling for 3D (Cube Root)
-    const ratio = (this.innerRx / this.rx); // assume uniform scaling
+    const ratio = (this.innerRx / this.rx); 
     const r = Math.cbrt(Math.random() * (1 - ratio**3) + ratio**3);
     
     const theta = (this.startTheta + Math.random() * this.deltaTheta) % (2 * Math.PI);
@@ -74,7 +69,6 @@ export class EllipsoidSector3D {
 
 /**
  * Ellipsoid3D
- * Overrides to skip angular logic.
  */
 export class Ellipsoid3D extends EllipsoidSector3D {
   constructor(center, rx=1, ry=1, rz=1, innerRx=0, innerRy=0, innerRz=0) {
@@ -108,7 +102,6 @@ export class Ellipsoid3D extends EllipsoidSector3D {
 
 /**
  * Sphere3D
- * The most optimized 3D volume sampler.
  */
 export class Sphere3D extends Ellipsoid3D {
   constructor(center, radius=1, innerRadius=0) {
@@ -215,7 +208,6 @@ export class Cone3D {
     this.radius = radius; 
     this.height = height;
     this.innerRadius = innerRadius;
-    // If not provided, "shared tip" cone
     this.innerHeight = innerHeight !== null ? innerHeight : (innerRadius > 0 ? height : 0);
 
     const outerVol = (1 / 3) * Math.PI * (radius ** 2) * height;

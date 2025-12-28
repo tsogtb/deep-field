@@ -1,5 +1,5 @@
 import { mat4 } from "https://esm.sh/gl-matrix";
-import { Path1D } from "./src/curves1d.js"; 
+import { Path1D } from "../geometry/curves1d.js"; 
 
 
 function createEnglishGreeting(offset, scale = 0.5) {
@@ -23,7 +23,6 @@ function createEnglishGreeting(offset, scale = 0.5) {
   const indent = (numSpaces) => { cursorX += s * 1.2 * numSpaces; };
   const newLine = () => { cursorX = 0; cursorY -= lineSpacing; };
 
-  // --- Uniform Letter Definitions ---
   const drawA = () => { line(0, 0, s * 0.5, s); line(s, 0, s * 0.5, s); line(s * 0.2, s * 0.4, s * 0.8, s * 0.4); next(s); };
   const drawD = () => { line(0, 0, 0, s); line(0, s, s * 0.7, s); line(s * 0.7, s, s, s * 0.5); line(s, s * 0.5, s * 0.7, 0); line(s * 0.7, 0, 0, 0); next(s); };
   const drawE = () => { line(0, 0, 0, s); line(0, s, s, s); line(0, s * 0.5, s * 0.7, s * 0.5); line(0, 0, s, 0); next(s); };
@@ -44,7 +43,6 @@ function createEnglishGreeting(offset, scale = 0.5) {
   const drawW = () => { line(0, s, s * 0.25, 0); line(s * 0.25, 0, s * 0.5, s * 0.4); line(s * 0.5, s * 0.4, s * 0.75, 0); line(s * 0.75, 0, s, s); next(s * 1.1); };
   const drawY = () => { line(0, s, s * 0.5, s * 0.5); line(s, s, s * 0.5, s * 0.5); line(s * 0.5, s * 0.5, s * 0.5, 0); next(s); };
   
-  // FIXED EXCLAMATION: Stem stops at 0.5, Dot is a tiny line at the bottom
   const drawExcl = () => { 
     line(s * 0.3, s, s * 0.3, s * 0.5); // Stem (Top half only)
     line(s * 0.3, 0.1, s * 0.3, 0);    // Dot (At the very bottom)

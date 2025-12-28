@@ -3,3 +3,4 @@ export * from './shapes2d.js';
 export * from './shapes3d.js';
 export * from './composite_shapes.js';
 export * from './rotated_shape.js';
+export * from './translated_shape.js';

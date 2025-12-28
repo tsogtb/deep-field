@@ -9,7 +9,6 @@ export class CompositeShape {
     this.shapes = shapes;
     this.maxAttempts = options.maxAttempts ?? 1000;
 
-    // Standard properties
     this.bbox = this._calculateBBox();
 
     this.center = {
@@ -75,7 +74,7 @@ export class CompositeShape {
     }, {});
   }
 
-  /** @private Estimation for weight-based sampling */
+  /** @private */
   _calculateVolume() {
     if (this.type === 'difference') {
       return Math.max(0.001, (this.shapes[0].volume || 1) * 0.7); // Heuristic

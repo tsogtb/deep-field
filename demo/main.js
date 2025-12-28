@@ -36,10 +36,8 @@ resizeCanvas();
 
 // ---------------- Camera ----------------
 const camera = new Camera(canvas);
-
-// Return home (like pressing "O")
 document.getElementById("btn-home").addEventListener("click", () => {
-  camera.isReturning = true; // camera.update() will handle smooth return
+  camera.isReturning = true;
 });
 
 // ---------------- Scene & Renderer ----------------
@@ -52,7 +50,6 @@ let pointData = createPointData(regl, getSceneConfig(currentSceneIndex).config);
 
 
 function loadScene(index) {
-  // 1. Clean up the array of active objects
   if (Array.isArray(pointData)) {
     pointData.forEach(obj => {
       if (obj.buffer) obj.buffer.destroy();
@@ -63,7 +60,6 @@ function loadScene(index) {
   const sceneInfo = getSceneConfig(index);
   if (sceneInfo.brush) currentBrush = sceneInfo.brush;
 
-  // 2. Load new array of point objects
   pointData = createPointData(regl, sceneInfo.config);
   console.log(`Loaded Scene ${index}: ${sceneInfo.name || 'New Scene'}`);
 }
@@ -97,29 +93,23 @@ regl.frame(({ time }) => {
 
   passiveData.forEach(obj => {
     mat4.identity(obj.modelMatrix);
-    
     if (obj.id === 'snow') {
       const fallSpeed = 1.0;
-      const range = 10.0; // The height of your cube (from -5 to 5)
+      const range = 10.0;
       
-      // Calculate a vertical offset that loops from 0 to -10
       const yOffset = -(time * fallSpeed % range);
       mat4.translate(obj.modelMatrix, obj.modelMatrix, [0, yOffset, 0]);
     }
-    // Stars and Cube stay at identity (fixed in space)
   });
 
-  // Get the current scene configuration
   const sceneInfo = getSceneConfig(currentSceneIndex);
 
-  // If the scene has an animate function, use it!
   if (sceneInfo.animate) {
     sceneInfo.animate(pointData, time, mat4);
   } else {
   /* Fallback default animation if no specific one is defined
   pointData.forEach(obj => {
     mat4.identity(obj.modelMatrix);
-    mat4.rotateY(obj.modelMatrix, obj.modelMatrix, time * 0.5);
   });
   */
   }
@@ -133,7 +123,6 @@ window.addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'j') {
     const canvas = document.getElementById("c");
     
-    // Check if the drawing buffer is preserved
     const attributes = regl._gl.getContextAttributes();
     
     if (!attributes.preserveDrawingBuffer) {
