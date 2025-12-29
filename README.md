@@ -2,7 +2,7 @@
 
 **A modular JavaScript framework for procedural geometry, particle dynamics, and GPU-based visualization.**
 
-![deepfield Banner](./assets/deepfield.png)
+![Spaghetti Simulation](./assets/deepfield_line_red.gif)
 
 > **Why Deepfield?**  
 > Just as the Hubble Deep Field revealed structure through accumulation, `deepfield` reveals space, motion, and form by sampling, evolving, and rendering large numbers of discrete points.
