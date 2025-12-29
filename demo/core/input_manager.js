@@ -5,19 +5,28 @@ export const InputState = {
 };
 
 export function setupInput(canvas, sceneController, camera) {
+  
   window.addEventListener("keydown", (e) => {
     const code = e.code;
     const key = e.key.toLowerCase();
 
+    if (InputState.keys.has(code)) return;
+
     InputState.keys.add(code);
+    InputState.keys[code] = true; 
     
     if (key === "n") sceneController.nextScene();
     if (key === "b") sceneController.swapBrush();
-    if (key === "o") camera.isReturning = true;
+    if (key === "o") camera.isReturning = true; 
+    
+    console.log(`Key Down: ${code} | Active Keys:`, Array.from(InputState.keys));
   });
 
   window.addEventListener("keyup", (e) => {
-    InputState.keys.delete(e.code);
+    const code = e.code;
+    
+    InputState.keys.delete(code);
+    InputState.keys[code] = false;
   });
 
   canvas.addEventListener("mousedown", () => {

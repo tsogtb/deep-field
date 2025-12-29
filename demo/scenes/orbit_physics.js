@@ -1,57 +1,57 @@
-/* orbit_physics.js */
-import { integrateEulerParticles } from "../../dist/physics/mechanics/integrators.js";
+import { integrateSemiImplicitEuler } from "../../dist/physics/mechanics/integrators.js";
 import { gravityCentral } from "../../dist/physics/mechanics/gravity-central.js";
-import { syncParticlesToBuffer } from "../../dist/physics/util/render_adapter.js";
-import { Sphere3D } from "../../geometry/shapes3d.js"; // Assume your geometry code is here
+import { syncParticlesToBuffer, toFloat32 } from "../../dist/physics/util/buffers.js";
+import { Sphere3D } from "../../geometry/shapes3d.js";
 
-const COUNT = 5000; // Number of particles in the sphere
+const COUNT = 20000;
 const CONFIG = {
-  MASS: 10.0,
+  MASS: 50.0,
   DT: 0.016,
   COLOR: [0.2, 0.7, 1.0]
 };
 
-// 1. Create the Sphere Geometry
-// We place it at X=2.5, with a radius of 0.5
-const startRegion = new Sphere3D({ x: 2.5, y: 0, z: 0 }, 1.5);
+const startRegion = new Sphere3D({ x: 3.5, y: 0, z: 0 }, 1.5);
+const startRegion_0 = new Sphere3D({ x: -3.5, y: 0, z: 0 }, 1.5);
+const initialPos = [];
+const initialVel = [];
 
-// 2. Initialize simulation arrays
-const positions = [];
-const velocities = [];
-
-for (let i = 0; i < COUNT; i++) {
+for (let i = 0; i < COUNT/2; i++) {
   const p = startRegion.sample();
-  positions.push([p.x, p.y, p.z]);
-  
-  // Give them all the circular orbit velocity we calculated (sqrt(10/2.5) = 2.0)
-  // Moving in Y direction (Vertical Orbit)
-  velocities.push([0.0, 1.0, 0.0]);
+  initialPos.push([p.x, p.y, p.z]);
+  initialVel.push([0.0, 2.0, 0.0]);
 }
 
-let simState = {
+for (let i = 0; i < COUNT/2; i++) {
+  const p = startRegion_0.sample();
+  initialPos.push([p.x, p.y, p.z]);
+  initialVel.push([0.0, -2.0, 0.0]);
+}
+
+const simState = {
   t: 0.0,
-  position: positions, 
-  velocity: velocities, 
+  count: COUNT,
+  position: toFloat32(initialPos),
+  velocity: toFloat32(initialVel),
+  acceleration: new Float32Array(COUNT * 3)
 };
 
-const deriv = gravityCentral(CONFIG.MASS);
+const gravity = gravityCentral(CONFIG.MASS);
 
 export const orbitSceneConfig = {
   name: "orbitSimulation",
-  brush: "star",
+  brush: "square",
   config: {
-    // We provide a dummy sampler for the config, 
-    // but the actual data comes from our loop above
     samplers: [() => ({ x: 0, y: 0, z: 0 })],
-    counts: [COUNT], 
+    counts: [COUNT],
     sceneColors: [CONFIG.COLOR]
   },
   
   animate: (pointData, time, mat4) => {
-    // Advance physics for ALL particles at once
-    simState = integrateEulerParticles(simState, deriv, CONFIG.DT);
 
-    // Sync the entire array to the GPU
+    gravity(simState, simState.t);
+
+    integrateSemiImplicitEuler(simState, CONFIG.DT);
+
     if (pointData[0]?.buffer) {
       syncParticlesToBuffer(simState, pointData[0].buffer);
     }

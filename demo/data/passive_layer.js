@@ -1,5 +1,5 @@
 import { mat4 } from "https://esm.sh/gl-matrix";
-import { Path1D } from "../../geometry/curves1d.js";
+import { Path1D } from "../../geometry/path1d.js";
 
 const CONFIG = {
   STARS: { count: 10000, size: 0.4 },

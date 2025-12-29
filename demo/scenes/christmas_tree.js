@@ -1,8 +1,8 @@
 import { Cone3D, Cylinder3D, Box3D } from "../../geometry/shapes3d.js";
-import { Path1D, conicHelix } from "../../geometry/curves1d.js";
-import { RotatedShape } from "../../geometry/rotated_shape.js";
+import { Path1D, conicHelix } from "../../geometry/path1d.js";
+import { RotatedShape } from "../../geometry/composites.js";
 import { Polygon2D, Circle2D, Rectangle2D } from "../../geometry/shapes2d.js";
-import { CompositeShape } from "../../geometry/composite_shapes.js";
+import { CompositeShape } from "../../geometry/composites.js";
 
 // --- Helpers ---
 const createStar = (cx, cy, or, ir, p = 5) => {
@@ -65,6 +65,7 @@ const g3 = makeGift({x:0, y:-4.375, z:3.5}, 1.25, 0);
 const C = { GREEN: [0.1, 0.8, 0.2], GOLD: [1.0, 0.9, 0.3], RED: [1.0, 0.1, 0.1], BROWN: [0.4, 0.25, 0.1], BLUE: [0.15, 0.25, 0.65] };
 
 export const christmasTreeConfig = {
+  brush: "square",
   name: "christmasTree",
   config: {
     samplers: [

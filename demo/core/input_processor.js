@@ -1,10 +1,3 @@
-/*
-(c) 2025 Tsogt
-This code is licensed under the MIT License.
-Created: 12/20/2025
-Last modified: 12/28/2025
- */
-
 import { vec3 } from "https://esm.sh/gl-matrix";
 
 const moveVec = vec3.create();

@@ -1,4 +1,4 @@
-import { Path1D } from "../../geometry/curves1d.js";
+import { Path1D } from "../../geometry/path1d.js";
 import { Cone3D } from "../../geometry/shapes3d.js"; 
 
 const CFG = {

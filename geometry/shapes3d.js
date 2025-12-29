@@ -1,5 +1,7 @@
 /**
  * EllipsoidSector3D
+ * Volumetric manifold for ellipsoidal and spherical shapes.
+ * Supports hollow interiors and spherical coordinate sectors (Theta/Phi).
  */
 export class EllipsoidSector3D {
   constructor(center, rx=1, ry=1, rz=1, startTheta=0, endTheta=2*Math.PI, startPhi=0, endPhi=Math.PI, innerRx=0, innerRy=0, innerRz=0) {
@@ -9,12 +11,16 @@ export class EllipsoidSector3D {
     this.startTheta = startTheta; this.endTheta = endTheta;
     this.startPhi = startPhi; this.endPhi = endPhi;
 
+    // Normalizes azimuthal span (Theta)
     let deltaTheta = endTheta - startTheta;
     if (deltaTheta < 0) deltaTheta += 2 * Math.PI;
     this.deltaTheta = deltaTheta;
 
+    // Pre-calculates Cosine values for Phi to optimize the solid angle sampling
     this.cosStartPhi = Math.cos(startPhi);
     this.cosEndPhi = Math.cos(endPhi);
+    
+    // Solid angle calculation used for volume weighting
     const solidAngle = deltaTheta * (this.cosStartPhi - this.cosEndPhi);
     
     const volOuter = (1/3) * rx * ry * rz * solidAngle;
@@ -28,18 +34,25 @@ export class EllipsoidSector3D {
     };
   }
 
+  /**
+   * Point-in-volume test using normalized ellipsoidal coordinates.
+   * Logic: Projects point into a unit-sphere space to handle eccentricity.
+   */
   contains(p, epsilon = 1e-9) {
     const dx = p.x - this.center.x, dy = p.y - this.center.y, dz = p.z - this.center.z;
     
+    // Radial check: (x/rx)² + (y/ry)² + (z/rz)² ≤ 1
     const dnx = dx / this.rx, dny = dy / this.ry, dnz = dz / this.rz;
     const distSq = dnx * dnx + dny * dny + dnz * dnz;
     if (distSq > 1 + epsilon) return false;
 
+    // Inner radius (hollow) check
     if (this.innerRx > 0) {
       const idnx = dx / this.innerRx, idny = dy / this.innerRy, idnz = dz / this.innerRz;
       if (idnx * idnx + idny * idny + idnz * idnz < 1 - epsilon) return false;
     }
 
+    // Azimuthal check (Theta)
     let theta = Math.atan2(dy, dx); 
     if (theta < 0) theta += 2 * Math.PI;
     const inTheta = (this.startTheta <= this.endTheta) 
@@ -47,15 +60,25 @@ export class EllipsoidSector3D {
       : (theta >= this.startTheta - epsilon || theta <= this.endTheta + epsilon);
     if (!inTheta) return false;
 
+    // Polar check (Phi) using pre-calculated Cosine boundaries
     const cosP = dz / (Math.sqrt(dx*dx + dy*dy + dz*dz) + 1e-15);
     return cosP <= this.cosStartPhi + epsilon && cosP >= this.cosEndPhi - epsilon;
   }
 
+  /**
+   * Uniformly samples the 3D volume.
+   * Logic: 
+   * 1. Uses Cube Root of random for radial uniformity in 3D.
+   * 2. Maps random to Cosine(Phi) to ensure equal area distribution across latitudes.
+   */
   sample() {
+    // Inverse Transform Sampling for volume: R = ∛U
     const ratio = (this.innerRx / this.rx); 
     const r = Math.cbrt(Math.random() * (1 - ratio**3) + ratio**3);
     
     const theta = (this.startTheta + Math.random() * this.deltaTheta) % (2 * Math.PI);
+    
+    // Sampling Cosine(Phi) avoids the "clumping" effect at the poles
     const cosP = this.cosStartPhi - Math.random() * (this.cosStartPhi - this.cosEndPhi);
     const sinP = Math.sqrt(Math.max(0, 1 - cosP * cosP));
 
@@ -67,31 +90,53 @@ export class EllipsoidSector3D {
   }
 }
 
+
 /**
  * Ellipsoid3D
+ * Specialized volumetric manifold. 
+ * Strips spherical sector checks for optimized full-volume algebraic tests.
  */
 export class Ellipsoid3D extends EllipsoidSector3D {
   constructor(center, rx=1, ry=1, rz=1, innerRx=0, innerRy=0, innerRz=0) {
     super(center, rx, ry, rz, 0, 2*Math.PI, 0, Math.PI, innerRx, innerRy, innerRz);
   }
 
+  /**
+   * Performance Override.
+   * Logic: Point is inside if (dx/rx)² + (dy/ry)² + (dz/rz)² ≤ 1.
+   * Eliminates atan2 and coordinate normalization used for sector bounds.
+   */
   contains(p, epsilon = 1e-9) {
     const dx = p.x - this.center.x, dy = p.y - this.center.y, dz = p.z - this.center.z;
+    
     const distSq = (dx*dx)/(this.rx*this.rx) + (dy*dy)/(this.ry*this.ry) + (dz*dz)/(this.rz*this.rz);
     if (distSq > 1 + epsilon) return false;
+
+    // Fast-path hollow check
     if (this.innerRx > 0) {
       const iDistSq = (dx*dx)/(this.innerRx*this.innerRx) + (dy*dy)/(this.innerRy*this.innerRy) + (dz*dz)/(this.innerRz*this.innerRz);
       if (iDistSq < 1 - epsilon) return false;
     }
+    
     return true;
   }
 
+  /**
+   * Optimized Volumetric Sampling.
+   * Uses a linear [-1, 1] map for Cosine(Phi) to ensure uniform surface distribution
+   * before scaling by the cube root of the radius for volume density.
+   */
   sample() {
+    // R = ∛U for 3D uniform volume density
     const ratio = (this.innerRx / this.rx);
     const r = Math.cbrt(Math.random() * (1 - ratio**3) + ratio**3);
+    
     const theta = Math.random() * 2 * Math.PI;
+    
+    // Efficiently generates a uniform point on a sphere surface via linear Z-projection
     const cosP = 2 * Math.random() - 1;
-    const sinP = Math.sqrt(1 - cosP * cosP);
+    const sinP = Math.sqrt(Math.max(0, 1 - cosP * cosP));
+
     return {
       x: this.center.x + this.rx * r * sinP * Math.cos(theta),
       y: this.center.y + this.ry * r * sinP * Math.sin(theta),
@@ -100,29 +145,49 @@ export class Ellipsoid3D extends EllipsoidSector3D {
   }
 }
 
+
 /**
  * Sphere3D
+ * Highly optimized spherical manifold.
+ * Replaces ellipsoidal division with Euclidean squared-distance checks.
  */
 export class Sphere3D extends Ellipsoid3D {
-  constructor(center, radius=1, innerRadius=0) {
+  constructor(center, radius = 1, innerRadius = 0) {
     super(center, radius, radius, radius, innerRadius, innerRadius, innerRadius);
-    this.rSq = radius * radius;
-    this.irSq = innerRadius * innerRadius;
     this.radius = radius;
     this.innerRadius = innerRadius;
+    this.rSq = radius * radius;
+    this.irSq = innerRadius * innerRadius;
   }
 
+  /**
+   * Performance Override.
+   * Logic: x² + y² + z² ≤ r².
+   * Bypasses three divisions per check compared to the base Ellipsoid class.
+   */
   contains(p, epsilon = 1e-9) {
-    const dx = p.x - this.center.x, dy = p.y - this.center.y, dz = p.z - this.center.z;
-    const d2 = dx*dx + dy*dy + dz*dz;
+    const dx = p.x - this.center.x;
+    const dy = p.y - this.center.y;
+    const dz = p.z - this.center.z;
+    
+    // Euclidean distance squared
+    const d2 = dx * dx + dy * dy + dz * dz;
+    
     return d2 <= this.rSq + epsilon && d2 >= this.irSq - epsilon;
   }
 
+  /**
+   * Optimized Volumetric Sampling.
+   * Uses the simplest form of 3D Inverse Transform Sampling.
+   */
   sample() {
+    // Radial distribution corrected for 3D volume (Cubic root)
     const r = Math.cbrt(Math.random() * (this.radius**3 - this.innerRadius**3) + this.innerRadius**3);
+    
     const theta = Math.random() * 2 * Math.PI;
     const cosP = 2 * Math.random() - 1;
-    const sinP = Math.sqrt(1 - cosP * cosP);
+    const sinP = Math.sqrt(Math.max(0, 1 - cosP * cosP));
+
     return {
       x: this.center.x + r * sinP * Math.cos(theta),
       y: this.center.y + r * sinP * Math.sin(theta),
@@ -131,33 +196,73 @@ export class Sphere3D extends Ellipsoid3D {
   }
 }
 
+
 /**
  * Box3D
+ * A 3D Axis-Aligned Bounding Box (AABB).
+ * Optimized for O(1) volumetric containment and spatial partitioning.
  */
 export class Box3D {
-  constructor(center, width=1, height=1, depth=1) {
-    this.center = center; this.width = width; this.height = height; this.depth = depth;
+  constructor(center, width = 1, height = 1, depth = 1) {
+    this.center = center;
+    this.width = width;
+    this.height = height;
+    this.depth = depth;
     this.volume = width * height * depth;
-    this.bbox = { minX: center.x-width/2, maxX: center.x+width/2, minY: center.y-height/2, maxY: center.y+height/2, minZ: center.z-depth/2, maxZ: center.z+depth/2 };
+
+    // Half-extents are cached to eliminate division overhead during containment checks
+    const hx = width / 2, hy = height / 2, hz = depth / 2;
+
+    this.bbox = { 
+      minX: center.x - hx, maxX: center.x + hx, 
+      minY: center.y - hy, maxY: center.y + hy, 
+      minZ: center.z - hz, maxZ: center.z + hz 
+    };
   }
-  contains(p, epsilon=1e-9) {
-    return Math.abs(p.x-this.center.x) <= this.width/2 + epsilon && Math.abs(p.y-this.center.y) <= this.height/2 + epsilon && Math.abs(p.z-this.center.z) <= this.depth/2 + epsilon;
+
+  /**
+   * Fast AABB containment test.
+   * Logic: Point is inside if its absolute displacement from center 
+   * is less than or equal to the box half-extents.
+   */
+  contains(p, epsilon = 1e-9) {
+    const dx = Math.abs(p.x - this.center.x);
+    const dy = Math.abs(p.y - this.center.y);
+    const dz = Math.abs(p.z - this.center.z);
+
+    return dx <= (this.width / 2) + epsilon && 
+           dy <= (this.height / 2) + epsilon && 
+           dz <= (this.depth / 2) + epsilon;
   }
+
+  /**
+   * Uniformly samples the 3D volume.
+   * Maps three independent random variables across the XYZ dimensions.
+   */
   sample() {
-    return { x: this.center.x + (Math.random()-0.5)*this.width, y: this.center.y + (Math.random()-0.5)*this.height, z: this.center.z + (Math.random()-0.5)*this.depth };
+    return { 
+      x: this.center.x + (Math.random() - 0.5) * this.width, 
+      y: this.center.y + (Math.random() - 0.5) * this.height, 
+      z: this.center.z + (Math.random() - 0.5) * this.depth 
+    };
   }
 }
 
+
 /**
- * Cylinder3D (Tube/Pipe Support)
+ * Cylinder3D
+ * Volumetric manifold for solid cylinders and hollow tubes/pipes.
+ * Extrudes a circular or annular cross-section along the Z-axis.
  */
 export class Cylinder3D {
-  constructor(center, radius=1, height=1, innerRadius=0) {
+  constructor(center, radius = 1, height = 1, innerRadius = 0) {
     this.center = center; 
     this.radius = radius; 
     this.height = height; 
     this.innerRadius = innerRadius;
-    this.volume = Math.PI * (radius*radius - innerRadius*innerRadius) * height;
+    this.volume = Math.PI * (radius * radius - innerRadius * innerRadius) * height;
+    
+    // Cached squared radii for O(1) containment checks
     this.rSq = radius * radius;
     this.irSq = innerRadius * innerRadius;
 
@@ -169,17 +274,29 @@ export class Cylinder3D {
     };
   }
 
-  contains(p, epsilon=1e-9) {
-    
+  /**
+   * Containment test.
+   * Logic: Point is inside if it passes a 1D linear Z-check 
+   * followed by a 2D radial XY-check.
+   */
+  contains(p, epsilon = 1e-9) {
+    // 1. Vertical check (Height)
     const dz = p.z - this.center.z;
     const halfH = this.height / 2;
     if (Math.abs(dz) > halfH + epsilon) return false;
 
+    // 2. Radial check (Cross-section)
     const d2 = (p.x - this.center.x)**2 + (p.y - this.center.y)**2;
     return d2 <= this.rSq + epsilon && d2 >= this.irSq - epsilon;
   }
 
+  /**
+   * Uniformly samples the cylinder volume.
+   * Logic: Uses Square Root sampling for the radial component (XY) 
+   * and linear sampling for the longitudinal component (Z).
+   */
   sample() {
+    // R = √U for uniform 2D distribution on the disk cross-section
     const r = Math.sqrt(Math.random() * (this.rSq - this.irSq) + this.irSq);
     const t = Math.random() * 2 * Math.PI;
     
@@ -192,17 +309,14 @@ export class Cylinder3D {
     };
   }
 }
+
+
 /**
  * Cone3D
+ * Volumetric manifold for solid cones and hollow conic shells.
+ * Defined from a base at +Z=0 to an apex at +Z=Height.
  */
 export class Cone3D {
-  /**
-   * @param {{x,y,z}} center - Center of the circular base
-   * @param {number} radius - Base outer radius
-   * @param {number} height - Distance from base to tip along +Z
-   * @param {number} innerRadius - Base inner radius
-   * @param {number} [innerHeight] - Height of the internal void. Defaults to outer height.
-   */
   constructor(center, radius = 1, height = 1, innerRadius = 0, innerHeight = null) {
     this.center = center;
     this.radius = radius; 
@@ -210,6 +324,7 @@ export class Cone3D {
     this.innerRadius = innerRadius;
     this.innerHeight = innerHeight !== null ? innerHeight : (innerRadius > 0 ? height : 0);
 
+    // Volume of a cone: (1/3) * π * r² * h
     const outerVol = (1 / 3) * Math.PI * (radius ** 2) * height;
     const innerVol = (1 / 3) * Math.PI * (innerRadius ** 2) * this.innerHeight;
     this.volume = outerVol - innerVol;
@@ -221,10 +336,24 @@ export class Cone3D {
     };
   }
 
+  /**
+     * Containment test.
+     * Logic: 
+     * 1. Fast-fail via AABB (Bounding Box) check.
+     * 2. Scales the acceptable radius linearly based on the point's height (dz).
+     */
   contains(p, epsilon = 1e-9) {
-    const dz = p.z - this.center.z;
-    if (dz < -epsilon || dz > this.height + epsilon) return false;
+    // 1. Broad-phase AABB exit
+    if (p.x < this.bbox.minX - epsilon || p.x > this.bbox.maxX + epsilon || 
+        p.y < this.bbox.minY - epsilon || p.y > this.bbox.maxY + epsilon ||
+        p.z < this.bbox.minZ - epsilon || p.z > this.bbox.maxZ + epsilon) {
+      return false;
+    }
 
+    // 2. Vertical relative height
+    const dz = p.z - this.center.z;
+
+    // 3. Similarity of triangles: r_at_z / (height - dz) = max_r / height
     const outerRAtZ = (this.radius / this.height) * (this.height - dz);
     const dx = p.x - this.center.x;
     const dy = p.y - this.center.y;
@@ -232,24 +361,30 @@ export class Cone3D {
 
     if (d2 > (outerRAtZ + epsilon) ** 2) return false;
 
+    // 4. Check against internal void if hollow
     if (this.innerRadius > 0 && dz <= this.innerHeight + epsilon) {
       const innerRAtZ = (this.innerRadius / this.innerHeight) * (this.innerHeight - dz);
       if (d2 < (innerRAtZ - epsilon) ** 2) return false;
     }
-
     return true;
   }
 
+  /**
+   * Uniformly samples the conical volume.
+   * Logic: 
+   * 1. Generates a point in the outer cone using Cubic Root (t) for vertical scaling.
+   * 2. Uses rejection sampling to subtract the inner void if applicable.
+   */
   sample() {
-    if (this.innerRadius <= 0) {
-      return this._sampleOuter();
-    }
+    if (this.innerRadius <= 0) return this._sampleOuter();
 
+    // Rejection sampling for hollow cones
     let attempts = 0;
     while (attempts < 2000) {
       const p = this._sampleOuter();
       const dz = p.z - this.center.z;
 
+      // If point is above the inner cone's apex, it's valid
       if (dz > this.innerHeight) return p;
 
       const innerRAtZ = (this.innerRadius / this.innerHeight) * (this.innerHeight - dz);
@@ -261,10 +396,13 @@ export class Cone3D {
     return this._sampleOuter(); 
   }
 
-  /** @private */
+  /** * Internal sampler for a solid cone.
+   * Uses t = ∛U to handle the cubic relationship of volume vs height.
+   * @private 
+   */
   _sampleOuter() {
     const u = Math.random();
-    const t = Math.cbrt(u);
+    const t = Math.cbrt(u); 
     const z = this.center.z + (1 - t) * this.height;
     const r = t * this.radius * Math.sqrt(Math.random());
     const theta = Math.random() * 2 * Math.PI;

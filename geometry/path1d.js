@@ -1,9 +1,16 @@
+/**
+ * Path1D
+ * Composite 1D manifold. Handles linear segments, arcs, and parametric functions.
+ * Uses arc-length parameterization via importance sampling for uniform distribution.
+ */
 export class Path1D {
   constructor(segments, lutResolution = 200) {
     this.segments = segments.map(seg => {
+      // Functional segments are pre-baked into Look-Up Tables (LUT)
       if (typeof seg === 'function') return this._prebakeParametric(seg, lutResolution);
       return seg;
     });
+    
     this.cumulativeLengths = [];
     this.totalLength = 0;
     this.bbox = { 
@@ -19,6 +26,7 @@ export class Path1D {
       this._updateBBox(seg);
     }
 
+    // Default to origin if path is empty/point-like
     if (this.totalLength === 0) {
       this.bbox = { minX: 0, maxX: 0, minY: 0, maxY: 0, minZ: 0, maxZ: 0 };
     }
@@ -33,12 +41,15 @@ export class Path1D {
     this.area = this.totalLength;
   }
 
+  /**
+   * Samples a point along the path. 
+   * Uses binary search O(log N) over cumulative length for uniform density.
+   */
   sample() {
     if (this.totalLength === 0) return { ...this.center };
     
     const target = Math.random() * this.totalLength;
     
-    // Binary Search to find segment: O(log N)
     let low = 0, high = this.cumulativeLengths.length - 1;
     while (low < high) {
       const mid = (low + high) >>> 1;
@@ -57,7 +68,7 @@ export class Path1D {
     return { ...this.center };
   }
 
-  /** @private */
+  /** @private Linear interpolation between two points */
   _sampleLine(seg, dist) {
     const len = Math.sqrt(
       (seg.end.x - seg.start.x)**2 + (seg.end.y - seg.start.y)**2 + ((seg.end.z||0) - (seg.start.z||0))**2
@@ -70,7 +81,7 @@ export class Path1D {
     };
   }
 
-  /** @private */
+  /** @private Angular sampling along a circular arc */
   _sampleArc(seg, dist) {
     const start = seg.start || 0;
     const end = seg.end !== undefined ? seg.end : 2 * Math.PI;
@@ -85,7 +96,7 @@ export class Path1D {
     };
   }
 
-  /** @private */
+  /** @private LUT-based sampling for parametric functions to correct for velocity variations */
   _sampleBaked(seg, target) {
     let low = 0, high = seg.samples;
     while (low < high) {
@@ -99,7 +110,7 @@ export class Path1D {
     return seg.f(Math.max(0, Math.min(1, ((i - 1) + alpha) / seg.samples)));
   }
 
-  /** @private */
+  /** @private Grows AABB to encompass segment geometry */
   _updateBBox(seg) {
     let min = {x:0,y:0,z:0}, max = {x:0,y:0,z:0};
 
@@ -110,8 +121,9 @@ export class Path1D {
       min = { x: seg.center.x - seg.radius, y: seg.center.y - seg.radius, z: (seg.center.z||0) };
       max = { x: seg.center.x + seg.radius, y: seg.center.y + seg.radius, z: (seg.center.z||0) };
     } else if (seg.type === 'baked_parametric') {
-      // Sample a few points for parametric BBox estimation
-      for(let t=0; t<=1; t+=0.1) {
+      // 50 samples (0.02 step) provides a safe balance between 
+      // construction speed and BBox accuracy for most curves.
+      for(let t=0; t<=1; t+=0.02) {
         const p = seg.f(t);
         this.bbox.minX = Math.min(this.bbox.minX, p.x);
         this.bbox.maxX = Math.max(this.bbox.maxX, p.x);
@@ -145,7 +157,7 @@ export class Path1D {
     return 0;
   }
 
-  /** @private */
+  /** @private Pre-calculates arc-length for parametric functions via Riemann sum approximation */
   _prebakeParametric(f, samples) {
     let totalLength = 0;
     const lut = [0];
@@ -160,6 +172,12 @@ export class Path1D {
   }
 }
 
+
+/**
+ * Quadratic Bézier Curve
+ * Defined by 3 control points. P1 is the non-interpolated handle.
+ * @param {t} Normalized time [0, 1]
+ */
 export const bezierQuadratic = ({ p0, p1, p2 }) => (t) => {
   const it = 1 - t, it2 = it * it, t2 = t * t, f1 = 2 * it * t;
   return {
@@ -169,6 +187,12 @@ export const bezierQuadratic = ({ p0, p1, p2 }) => (t) => {
   };
 };
 
+
+/**
+ * Cubic Bézier Curve
+ * Defined by 4 control points. P1 and P2 are the handles.
+ * @param {t} Normalized time [0, 1]
+ */
 export const bezierCubic = ({ p0, p1, p2, p3 }) => (t) => {
   const it = 1 - t, it2 = it * it, it3 = it2 * it, t2 = t * t, t3 = t2 * t;
   const f1 = 3 * it2 * t, f2 = 3 * it * t2;
@@ -179,12 +203,24 @@ export const bezierCubic = ({ p0, p1, p2, p3 }) => (t) => {
   };
 };
 
+
+/**
+ * Standard Helix
+ * Cylindrical path with constant radius.
+ * @param {t} Normalized time [0, 1]
+ */
 export const helix = ({ center, radius, height, turns }) => (t) => ({
   x: center.x + radius * Math.cos(t * Math.PI * 2 * turns),
   y: center.y + radius * Math.sin(t * Math.PI * 2 * turns),
   z: center.z + t * height
 });
 
+
+/**
+ * Conic Helix
+ * Helix with linearly interpolated radius from start to end.
+ * @param {t} Normalized time [0, 1]
+ */
 export const conicHelix = ({ center, radiusStart, radiusEnd, height, turns }) => (t) => {
   const currentRadius = radiusStart + (radiusEnd - radiusStart) * t;
   const angle = t * Math.PI * 2 * turns;

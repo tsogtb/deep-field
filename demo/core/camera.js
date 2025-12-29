@@ -5,7 +5,7 @@ export class Camera {
     this.canvas = canvas;
     this.projection = mat4.create();
     this.view = mat4.create();
-    this.position = vec3.fromValues(0, 0, 3);
+    this.position = vec3.fromValues(0, 0, 20);
     this.orientation = quat.create();
 
     const lookAtMatrix = mat4.create();

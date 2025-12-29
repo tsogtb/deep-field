@@ -1,8 +1,10 @@
+import { blankConfig } from "../scenes/blank.js";
 import { christmasTreeConfig } from "../scenes/christmas_tree.js";
 import { orbitSceneConfig } from "../scenes/orbit_physics.js";
 
 export const SCENES = [
-  christmasTreeConfig,
+  blankConfig,
+  //christmasTreeConfig,
   orbitSceneConfig,
 ];
 
