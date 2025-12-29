@@ -8,6 +8,8 @@ export class SceneController {
     this.currentBrush = "star";
     this.pointData = [];
     this.loadScene(0);
+
+    this.showGizmo = true;
   }
 
   loadScene(index) {
@@ -31,5 +33,9 @@ export class SceneController {
     const brushes = ["basic", "circle", "square", "star"];
     const idx = brushes.indexOf(this.currentBrush);
     this.currentBrush = brushes[(idx + 1) % brushes.length];
+  }
+
+  toggleGizmo() {
+    this.showGizmo = !this.showGizmo;
   }
 }

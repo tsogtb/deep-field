@@ -88,6 +88,7 @@ regl.frame(({ time }) => {
     time, 
     sceneController.currentBrush, 
     sceneController.pointData, 
-    activePassiveLayer
+    activePassiveLayer,
+    sceneController.showGizmo,
   );
 });

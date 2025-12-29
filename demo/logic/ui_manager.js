@@ -3,6 +3,7 @@ export function setupUI(sceneController) {
   const settingsPanel = document.getElementById("settings-panel");
   const brushSelect = document.getElementById("ui-brush-select");
   const bloomCheck = document.getElementById("ui-bloom");
+  const gizmoCheckbox = document.getElementById("ui-gizmo");
 
   settingsBtn.addEventListener("click", () => {
       const isOpen = settingsPanel.style.right === "0px";
@@ -20,4 +21,11 @@ export function setupUI(sceneController) {
   window.addEventListener('keydown', (e) => {
       if (e.key.toLowerCase() === 'p') settingsBtn.click();
   });
+
+  if (gizmoCheckbox) {
+    gizmoCheckbox.checked = sceneController.showGizmo;
+    gizmoCheckbox.addEventListener("change", () => {
+      sceneController.showGizmo = gizmoCheckbox.checked;
+    });
+  }
 }

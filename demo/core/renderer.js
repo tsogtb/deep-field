@@ -52,7 +52,7 @@ export function createPointRenderer(regl) {
 
   const drawGizmoGroup = createGizmoGroup(regl, GIZMO.vert, GIZMO.frag);
 
-  return function render(camera, time, brushType = 'circle', activeObjects = [], passiveObjects = []) {
+  return function render(camera, time, brushType = 'circle', activeObjects = [], passiveObjects = [], showGizmo = true) {
     globalScope({ uTime: time }, () => {
       
       drawBackground({ colorTop: [0, 0, 0], colorBottom: [0, 0, 0] });
@@ -82,8 +82,10 @@ export function createPointRenderer(regl) {
         });
       });
 
-      regl.clear({ depth: 1 });
-      drawGizmoGroup({ view: camera.view });
+      if (showGizmo) {
+        regl.clear({ depth: 1 });
+        drawGizmoGroup({ view: camera.view });
+      }
     });
   };
 }

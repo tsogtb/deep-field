@@ -1,5 +1,6 @@
 import { mat4 } from "https://esm.sh/gl-matrix";
 import { Path1D } from "../../geometry/path1d.js";
+import { Sphere3D } from "../../geometry/shapes3d.js";
 
 const CONFIG = {
   STARS: { count: 10000, size: 0.4 },
@@ -125,6 +126,7 @@ function generateSnow() {
   return { pos, col };
 }
 
+/*
 export function createPassiveLayer(regl) {
   const stars = generateStars();
   const snow = generateSnow();
@@ -144,5 +146,41 @@ export function createPassiveLayer(regl) {
     pack('snow',  snow,  CONFIG.SNOW.count),
     pack('cube',  cube,  CONFIG.CUBE.count),
     pack('text',  text,  CONFIG.TEXT.count)
+  ];
+}
+*/
+
+export function createPassiveLayer(regl) {
+  const SPHERE_COUNT = 500; // Enough points to make it look solid
+  const RADIUS = 0.1;       // Adjust this for "small" vs "large"
+  const sphereShape = new Sphere3D({ x: 0, y: 0, z: 0 }, RADIUS);
+
+  const positions = new Float32Array(SPHERE_COUNT * 3);
+  const colors = new Float32Array(SPHERE_COUNT * 3);
+
+  for (let i = 0; i < SPHERE_COUNT; i++) {
+    const p = sphereShape.sample();
+    
+    // Fill Positions
+    positions[i * 3 + 0] = p.x;
+    positions[i * 3 + 1] = p.y;
+    positions[i * 3 + 2] = p.z;
+
+    // Fill Colors (White: 1.0, 1.0, 1.0)
+    colors[i * 3 + 0] = 1.0;
+    colors[i * 3 + 1] = 1.0;
+    colors[i * 3 + 2] = 1.0;
+  }
+
+  const pack = (id, posData, colData, count) => ({
+    id,
+    count,
+    buffer: regl.buffer(posData),
+    colorBuffer: regl.buffer(colData),
+    modelMatrix: mat4.create()
+  });
+
+  return [
+    pack('centerSphere', positions, colors, SPHERE_COUNT)
   ];
 }

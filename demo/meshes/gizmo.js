@@ -69,7 +69,7 @@ const GIZMO_DATA = (() => {
 })();
 
 export function createGizmoGroup(regl, vert, frag) {
-  const uAnchor = [0.92, 0.85]; 
+  const uAnchor = [0.90, -0.85]; 
   const uScale = 0.12;
 
   const drawAxes = regl({

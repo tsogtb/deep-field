@@ -5,7 +5,7 @@ const G = 1.0;
 /** * Softening factor: prevents infinite force at the center (r -> 0) 
  * and numerical instability in the integrator.
  */
-const EPS = 0.0001; 
+const EPS = 0.00001; 
 
 /**
 Large EPS (0.5 - 1.0): The center feels "soft" and "mushy." Particles glide through the middle smoothly. It looks like a galaxy of gas.
