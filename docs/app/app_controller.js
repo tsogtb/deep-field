@@ -8,71 +8,86 @@ export class AppController {
     this.ui = ui;
 
     this.mode = "app"; // app | hero | geometry
+    this._prevSceneIndex = -1;
+    this._prevOverlayVisible = null;
+    this._prevPassiveVisible = null;
+    this._sceneInfo = null;
+    this._prevCameraOverlayVisible = null;
   }
 
   setMode(mode) {
     this.mode = mode;
-
+  
     if (mode === "hero") {
       this.sceneController.goToScene({ name: "blankScene", reason: "hero" });
       this._hideUI();
       this.sceneController.showGizmo = false;
-    }
-
-    if (mode === "geometry") {
+    } else if (mode === "geometry") {
       this.sceneController.goToScene({ name: "christmasTree", reason: "geometry" });
       this._hideUI();
       this.sceneController.showGizmo = false;
-    }
-
-    if (mode === "physics") {
+    } else if (mode === "physics") {
       this.sceneController.goToScene({ name: "spaghettiSimulation", reason: "geometry" });
       this._hideUI();
       this.sceneController.showGizmo = false;
-    }
-
-    if (mode === "app") {
+    } else if (mode === "app") {
       this.sceneController.goToScene({ index: 0, reason: "startup" });
       this._showUI();
     }
   }
-
+  
   updatePerFrame(time) {
-    const sceneInfo = getSceneConfig(this.sceneController.currentSceneIndex);
+    // --- Cache scene info only when the scene changes ---
+    const currentIndex = this.sceneController.currentSceneIndex;
+    if (this._prevSceneIndex !== currentIndex) {
+      this._sceneInfo = getSceneConfig(currentIndex);
+      this._prevSceneIndex = currentIndex;
+    }
+    const sceneInfo = this._sceneInfo;
     if (!sceneInfo) return;
-
-    const isMenu = sceneInfo.name === "blankScene";
-    const isOrbit = sceneInfo.name === "orbitSimulation";
-
-    // 1. Passive visibility logic (Stars/Background)
+  
+    const { name: sceneName } = sceneInfo;
+  
+    // --- Determine passive visibility ---
     const showPassive =
       this.mode === "hero" ||
-      (!isMenu && !isOrbit && this.mode !== "geometry");
-    this.passiveManager.setVisibility(showPassive);
-
-    // 2. Fix: Overlay visibility logic
-    // Only show the "Press Enter" overlay if we are in 'app' mode AND on the menu.
-    if (this.ui.startOverlay) {
-      const shouldShowOverlay = (this.mode === "app" && isMenu);
+      (this.mode !== "geometry" && sceneName !== "blankScene" && sceneName !== "orbitSimulation");
+  
+    // Only update if visibility changed
+    if (this._prevPassiveVisible !== showPassive) {
+      this.passiveManager.setVisibility(showPassive);
+      this._prevPassiveVisible = showPassive;
+    }
+  
+    // --- Start overlay visibility ---
+    const shouldShowOverlay = this.mode === "app" && sceneName === "blankScene";
+  
+    if (this.ui.startOverlay && this._prevOverlayVisible !== shouldShowOverlay) {
       this.ui.startOverlay.style.display = shouldShowOverlay ? "block" : "none";
+      this._prevOverlayVisible = shouldShowOverlay;
+    }
+  
+    // --- Optional: Gizmo visibility (if toggled by scene) ---
+    if (sceneInfo.showGizmo !== undefined && this.sceneController.showGizmo !== sceneInfo.showGizmo) {
+      this.sceneController.showGizmo = sceneInfo.showGizmo;
     }
   }
-
-  _hideUI() {
-    document.body.classList.remove("ui-ready");
-    
-    // Clean sweep: Force hide critical overlays
-    if (this.ui.startOverlay) this.ui.startOverlay.style.display = "none";
-    if (this.camera.overlay) this.camera.overlay.style.display = "none";
-    
-    window.dispatchEvent(new CustomEvent('close-settings'));
-  }
   
+
   _showUI() {
     document.body.classList.add("ui-ready");
-    
-    // Note: We don't force show the startOverlay here because 
-    // updatePerFrame handles that based on the scene index!
-    if (this.camera.overlay) this.camera.overlay.style.display = "block";
+    if (this.camera.overlay && this._prevCameraOverlayVisible !== true) {
+      this.camera.overlay.style.display = "block";
+      this._prevCameraOverlayVisible = true;
+    }
+  }
+  _hideUI() {
+    document.body.classList.remove("ui-ready");
+    if (this.ui.startOverlay) this.ui.startOverlay.style.display = "none";
+    if (this.camera.overlay && this._prevCameraOverlayVisible !== false) {
+      this.camera.overlay.style.display = "none";
+      this._prevCameraOverlayVisible = false;
+    }
+    window.dispatchEvent(new CustomEvent('close-settings'));
   }
 }
