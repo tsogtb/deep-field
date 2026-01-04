@@ -11,9 +11,10 @@ export class CameraLerp {
   update(camera, dt) {
     this.t += dt;
     const a = Math.min(this.t / this.duration, 1);
+    const smoothedA = a * a * (3 - 2 * a);
 
-    vec3.lerp(camera.position, this.from.position, this.to.position, a);
-    quat.slerp(camera.orientation, this.from.orientation, this.to.orientation, a);
+    vec3.lerp(camera.position, this.from.position, this.to.position, smoothedA);
+    //quat.slerp(camera.orientation, this.from.orientation, this.to.orientation, smoothedA);
 
     if (a === 1) {
       camera.driver = null;

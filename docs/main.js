@@ -6,7 +6,7 @@ Last modified: 01/04/2026
 */
 
 // --- Imports ---
-import { mat4 } from "https://esm.sh/gl-matrix";
+import { mat4, vec3, quat } from "https://esm.sh/gl-matrix";
 import { setupCanvasAndREGL } from "/deep-field/render/graphics_setup.js";
 import { Camera } from "/deep-field/camera/camera.js";
 import { InputState, setupInput } from "/deep-field/input/input_manager.js";
@@ -28,9 +28,9 @@ const camera = new Camera(canvas, DefaultCameraConfig);
 
 camera.controller =
   DefaultCameraConfig.mode === "orbit"
-    ? new OrbitController({ target: [0, 0, 0], distance: 6 })
+    ? new OrbitController(DefaultCameraConfig)
     : new FreeFlyController();
-
+    
 const render = createPointRenderer(regl);
 
 // --- State ---
@@ -70,17 +70,33 @@ setupScreenshot(canvas, regl);
 
 // --- URL mode resolution ---
 const params = new URLSearchParams(window.location.search);
-if (params.get("mode") === "hero") app.setMode("hero");
+if (params.get("mode") === "hero") {
+  app.setMode("hero");
+  const heroTarget = {
+    position: vec3.fromValues(0, 0, 0),
+    //orientation: quat.create() 
+  };
+  /*
+  const viewMat = mat4.lookAt(mat4.create(), heroTarget.position, [0,0,0], [1,1,1]);
+  mat4.getRotation(heroTarget.orientation, viewMat);
+  quat.invert(heroTarget.orientation, heroTarget.orientation);
+  */
+  camera.driver = new CameraLerp(
+    camera.snapshot(),
+    heroTarget,
+    3.0,
+  )
+}
 else if (params.get("scene") === "geometry") app.setMode("geometry");
 else if (params.get("scene") === "physics") app.setMode("app");
 else app.setMode("app");
 
 // --- Render loop ---
-let prevTime = 0;
+let lastFrameTime = 0;
 
 regl.frame(({ time }) => {
-  const dt = Math.min(time - prevTime, 0.1);
-  prevTime = time;
+  const dt = Math.min(time - lastFrameTime, 0.1);
+  lastFrameTime = time;
 
   // Camera
   const move = getMovementVector(InputState, camera);
