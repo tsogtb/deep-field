@@ -1,11 +1,11 @@
-import point_vert from "../render/shaders/point.vert.js";
-import circle_frag from "../render/shaders/circle.point.frag.js";
-import square_frag from "../render/shaders/square.point.frag.js";
-import star_frag from "../render/shaders/star.point.frag.js";
-import basic_vert from "../render/shaders/basic.vert.js";
-import basic_frag from "../render/shaders/basic.frag.js";
-import gizmo_vert from "../render/shaders/gizmo.vert.js";
-import gizmo_frag from "../render/shaders/gizmo.frag.js";
+import point_vert from "/deep-field/render/shaders/point.vert.js";
+import circle_frag from "/deep-field/render/shaders/circle.point.frag.js";
+import square_frag from "/deep-field/render/shaders/square.point.frag.js";
+import star_frag from "/deep-field/render/shaders/star.point.frag.js";
+import basic_vert from "/deep-field/render/shaders/basic.vert.js";
+import basic_frag from "/deep-field/render/shaders/basic.frag.js";
+import gizmo_vert from "/deep-field/render/shaders/gizmo.vert.js";
+import gizmo_frag from "/deep-field/render/shaders/gizmo.frag.js";
 
 const BLEND = {
   none: {

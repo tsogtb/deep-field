@@ -1,5 +1,5 @@
-import { Path1D } from "../../../geometry/path1d.js";
-import { Cone3D } from "../../../geometry/shapes3d.js"; 
+import { Path1D } from "/deep-field/geometry/path1d.js";
+import { Cone3D } from "/deep-field/geometry/shapes3d.js"; 
 
 const CFG = {
   PTS_LETTER: 50,

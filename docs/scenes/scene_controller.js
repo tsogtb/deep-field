@@ -1,5 +1,5 @@
-import { getSceneConfig, SCENES } from "./scene_manager.js";
-import { createPointData } from "../data/point_data.js";
+import { getSceneConfig, SCENES } from "/deep-field/scenes/scene_manager.js";
+import { createPointData } from "/deep-field/data/point_data.js";
 
 export class SceneController {
   constructor(regl) {

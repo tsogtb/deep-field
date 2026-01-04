@@ -1,8 +1,8 @@
-import { Cone3D, Cylinder3D, Box3D } from "../../../geometry/shapes3d.js";
-import { Path1D, conicHelix } from "../../../geometry/path1d.js";
-import { RotatedShape } from "../../../geometry/composites.js";
-import { Polygon2D, Circle2D, Rectangle2D } from "../../../geometry/shapes2d.js";
-import { CompositeShape } from "../../../geometry/composites.js";
+import { Cone3D, Cylinder3D, Box3D } from "/deep-field/geometry/shapes3d.js";
+import { Path1D, conicHelix } from "/deep-field/geometry/path1d.js";
+import { RotatedShape } from "/deep-field/geometry/composites.js";
+import { Polygon2D, Circle2D, Rectangle2D } from "/deep-field/geometry/shapes2d.js";
+import { CompositeShape } from "/deep-field/geometry/composites.js";
 
 // --- Helpers ---
 const createStar = (cx, cy, or, ir, p = 5) => {

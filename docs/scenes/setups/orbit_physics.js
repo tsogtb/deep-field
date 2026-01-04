@@ -1,7 +1,7 @@
-import { integrateSemiImplicitEuler } from "../../../dist/physics/mechanics/integrators.js";
-import { gravityCentral } from "../../../dist/physics/mechanics/gravity-central.js";
-import { syncParticlesToBuffer, toFloat32 } from "../../../dist/physics/util/buffers.js";
-import { Path1D } from "../../../geometry/path1d.js";
+import { integrateSemiImplicitEuler } from "/deep-field/dist/physics/mechanics/integrators.js";
+import { gravityCentral } from "/deep-field/dist/physics/mechanics/gravity-central.js";
+import { syncParticlesToBuffer, toFloat32 } from "/deep-field/dist/physics/util/buffers.js";
+import { Path1D } from "/deep-field/geometry/path1d.js";
 
 const TOTAL_COUNT = 20000;
 const SEGMENT_COUNT = 5;

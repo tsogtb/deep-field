@@ -1,5 +1,5 @@
 import { mat4, vec3, quat } from "https://esm.sh/gl-matrix";
-import { DefaultCameraConfig } from "./camera_config.js";
+import { DefaultCameraConfig } from "/deep-field/camera/camera_config.js";
 
 export class Camera {
   constructor(canvas, config = DefaultCameraConfig) {

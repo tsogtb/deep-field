@@ -1,4 +1,4 @@
-import { getSceneConfig } from "../scenes/scene_manager.js";
+import { getSceneConfig } from "/deep-field/scenes/scene_manager.js";
 
 export class AppController {
   constructor({ sceneController, camera, passiveManager, ui }) {

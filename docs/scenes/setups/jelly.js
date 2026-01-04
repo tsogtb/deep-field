@@ -1,10 +1,10 @@
-import { EllipsoidSector3D } from "../../../geometry/shapes3d.js";
-import { Path1D, helix, bezierQuadratic } from "../../../geometry/path1d.js";
-import { RotatedShape } from "../../../geometry/composites.js";
-import { Circle2D } from "../../../geometry/shapes2d.js";
-import { vectorField, waveField } from "../../../dist/physics/fields/vector-field.js";
-import { syncParticlesToBuffer, toFloat32 } from "../../../dist/physics/util/buffers.js";
-import { integrateSemiImplicitEuler } from "../../../dist/physics/mechanics/integrators.js";
+import { EllipsoidSector3D } from "/deep-field/geometry/shapes3d.js";
+import { Path1D, helix, bezierQuadratic } from "/deep-field/geometry/path1d.js";
+import { RotatedShape } from "/deep-field/geometry/composites.js";
+import { Circle2D } from "/deep-field/geometry/shapes2d.js";
+import { vectorField, waveField } from "/deep-field/dist/physics/fields/vector-field.js";
+import { syncParticlesToBuffer, toFloat32 } from "/deep-field/dist/physics/util/buffers.js";
+import { integrateSemiImplicitEuler } from "/deep-field/dist/physics/mechanics/integrators.js";
 
 
 const WAVE_FREQ = 5.5; 

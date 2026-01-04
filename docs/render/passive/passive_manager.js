@@ -1,4 +1,4 @@
-import { createPassiveLayer } from "../../data/passive_layer.js";
+import { createPassiveLayer } from "/deep-field/data/passive_layer.js";
 
 export class PassiveManager {
   constructor(regl) {

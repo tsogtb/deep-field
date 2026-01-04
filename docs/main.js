@@ -7,20 +7,20 @@ Last modified: 01/04/2026
 
 // --- Imports ---
 import { mat4 } from "https://esm.sh/gl-matrix";
-import { setupCanvasAndREGL } from "./render/graphics_setup.js";
-import { Camera } from "./camera/camera.js";
-import { InputState, setupInput } from "./input/input_manager.js";
-import { getMovementVector } from "./input/input_processor.js";
-import { createPointRenderer } from "./render/renderer.js";
-import { SceneController } from "./scenes/scene_controller.js";
-import { PassiveManager } from "./render/passive/passive_manager.js";
-import { animatePassiveObjects } from "./render/passive/animate_passive.js";
-import { setupUI } from "./app/ui_manager.js";
-import { setupScreenshot } from "./utils/screenshot.js";
-import { DefaultCameraConfig } from "./camera/camera_config.js";
-import { FreeFlyController } from "./camera/controllers/free_fly_controller.js";
-import { OrbitController } from "./camera/controllers/orbit_controller.js";
-import { AppController } from "./app/app_controller.js";
+import { setupCanvasAndREGL } from "/deep-field/render/graphics_setup.js";
+import { Camera } from "/deep-field/camera/camera.js";
+import { InputState, setupInput } from "/deep-field/input/input_manager.js";
+import { getMovementVector } from "/deep-field/input/input_processor.js";
+import { createPointRenderer } from "/deep-field/render/renderer.js";
+import { SceneController } from "/deep-field/scenes/scene_controller.js";
+import { PassiveManager } from "/deep-field/render/passive/passive_manager.js";
+import { animatePassiveObjects } from "/deep-field/render/passive/animate_passive.js";
+import { setupUI } from "/deep-field/app/ui_manager.js";
+import { setupScreenshot } from "/deep-field/utils/screenshot.js";
+import { DefaultCameraConfig } from "/deep-field/camera/camera_config.js";
+import { FreeFlyController } from "/deep-field/camera/controllers/free_fly_controller.js";
+import { OrbitController } from "/deep-field/camera/controllers/orbit_controller.js";
+import { AppController } from "/deep-field/app/app_controller.js";
 
 // --- Core setup ---
 const { canvas, regl } = setupCanvasAndREGL();

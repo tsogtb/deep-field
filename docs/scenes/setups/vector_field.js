@@ -1,7 +1,7 @@
-import { integrateSemiImplicitEuler } from "../../../dist/physics/mechanics/integrators.js";
-import { vectorField, vortexField } from "../../../dist/physics/fields/vector-field.js"; 
-import { syncParticlesToBuffer, toFloat32 } from "../../../dist/physics/util/buffers.js";
-import { Path1D } from "../../../geometry/path1d.js";
+import { integrateSemiImplicitEuler } from "/deep-field/dist/physics/mechanics/integrators.js";
+import { vectorField, vortexField } from "/deep-field/dist/physics/fields/vector-field.js"; 
+import { syncParticlesToBuffer, toFloat32 } from "/deep-field/dist/physics/util/buffers.js";
+import { Path1D } from "/deep-field/geometry/path1d.js";
 
 const SEGMENT_COUNT = 301;
 const TOTAL_COUNT = 150500; // ~500 particles per strand to maintain performance
