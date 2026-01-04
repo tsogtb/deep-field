@@ -21,6 +21,7 @@ import { DefaultCameraConfig } from "/deep-field/camera/camera_config.js";
 import { FreeFlyController } from "/deep-field/camera/controllers/free_fly_controller.js";
 import { OrbitController } from "/deep-field/camera/controllers/orbit_controller.js";
 import { AppController } from "/deep-field/app/app_controller.js";
+import { CameraLerp } from "/deep-field/camera/drivers/camera_lerp.js";
 
 // --- Core setup ---
 const { canvas, regl } = setupCanvasAndREGL();
