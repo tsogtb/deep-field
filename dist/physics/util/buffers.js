@@ -1,0 +1,13 @@
+export function syncParticlesToBuffer(state, buffer) {
+    buffer.subdata(state.position);
+}
+export function toFloat32(vecs) {
+    const arr = new Float32Array(vecs.length * 3);
+    for (let i = 0; i < vecs.length; i++) {
+        const idx = i * 3;
+        arr[idx + 0] = vecs[i][0];
+        arr[idx + 1] = vecs[i][1];
+        arr[idx + 2] = vecs[i][2];
+    }
+    return arr;
+}

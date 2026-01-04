@@ -25,8 +25,8 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc --watch",
-    "start": "npm run demo",
-    "demo": "npx live-server --open=demo",
+    "start": "npm run docs",
+    "docs": "npx live-server --open=docs",
     "dev": "npm run demo",
     "test": "vitest",
     "test:ui": "vitest --ui",
