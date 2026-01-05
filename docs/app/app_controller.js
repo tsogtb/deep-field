@@ -51,7 +51,7 @@ export class AppController {
     // --- Determine passive visibility ---
     const showPassive =
       this.mode === "hero" ||
-      (this.mode !== "geometry" && sceneName !== "blankScene" && sceneName !== "orbitSimulation");
+      (this.mode !== "geometry" && sceneName !== "blankScene" && sceneName !== "spaghettiSimulation");
   
     // Only update if visibility changed
     if (this._prevPassiveVisible !== showPassive) {

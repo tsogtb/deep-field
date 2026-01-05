@@ -6,6 +6,8 @@ import basic_vert from "../render/shaders/basic.vert.js";
 import basic_frag from "../render/shaders/basic.frag.js";
 import gizmo_vert from "../render/shaders/gizmo.vert.js";
 import gizmo_frag from "../render/shaders/gizmo.frag.js";
+import physics_vert from "../render/shaders/physics.vert.js";
+import physics_frag from "../render/shaders/physics.frag.js"
 
 const BLEND = {
   none: {
@@ -61,3 +63,10 @@ export const STAR = {
   blend: BLEND.glow, 
   depth: DEPTH.glow 
 };
+
+export const PHYSICS = {
+  vert: physics_vert,
+  frag: physics_frag,
+  blend: BLEND.glow,
+  depth: DEPTH.glow,
+}
