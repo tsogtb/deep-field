@@ -7,5 +7,5 @@ export const DefaultCameraConfig = {
   near: 0.01,
   far: 1000,
 
-  mode: "orbit", // "free" | "orbit"
+  mode: "free", // "free" | "orbit"
 };
