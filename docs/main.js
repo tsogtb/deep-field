@@ -83,7 +83,7 @@ if (params.get("mode") === "hero") {
 
   // Define start and end positions
   const startPos = vec3.fromValues(0, 5, 20); // start farther back
-  const endPos   = vec3.fromValues(0, 2, 10); // zoom in closer
+  const endPos   = vec3.fromValues(0, 0, 5); // zoom in closer
 
   // Immediately place the camera at the start
   camera.position = vec3.clone(startPos);
