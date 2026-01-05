@@ -1,25 +1,51 @@
+import { vec3, quat } from "https://esm.sh/gl-matrix";
+
 export class FreeFlyController {
-  update(camera, dt, inputData, rotDelta) {
-    const { move, roll, level } = inputData;
+  constructor() {
+    this.position = vec3.create();
+    this.yaw = 0;   // horizontal rotation
+    this.pitch = 0; // vertical rotation
+  }
 
-    const isMoving = camera._hasMovement(move);
-    const isRotating = camera._hasRotation(rotDelta, roll);
+  setPositionAndOrientation(pos, orient) {
+    vec3.copy(this.position, pos);
 
-    if (isMoving || isRotating) {
-      camera.isReturning = false;
+    // Extract yaw/pitch from the quaternion
+    const forward = vec3.create();
+    vec3.transformQuat(forward, [0, 0, -1], orient);
+
+    this.pitch = Math.asin(-forward[1]); // Y-up
+    this.yaw = Math.atan2(forward[0], forward[2]);
+  }
+
+  update(camera, dt, input, rotDelta) {
+    // Update yaw/pitch from mouse
+    if (rotDelta) {
+      this.yaw -= rotDelta[0] * (camera.mouseSensitivity ?? 0.002);
+      this.pitch -= rotDelta[1] * (camera.mouseSensitivity ?? 0.002);
+      const limit = Math.PI / 2 - 0.01;
+      this.pitch = Math.max(-limit, Math.min(limit, this.pitch));
     }
 
-    if (camera.isReturning) {
-      camera._updateReturn(dt);
-    }
+    // Convert yaw/pitch → quaternion
+    const qYaw = quat.create();
+    const qPitch = quat.create();
+    quat.setAxisAngle(qYaw, [0, 1, 0], this.yaw);
+    quat.setAxisAngle(qPitch, [1, 0, 0], this.pitch);
+    quat.multiply(camera.orientation, qYaw, qPitch);
 
-    if (level && !camera.isReturning && !isRotating) {
-      camera._updateLevel(dt);
+    // Move
+    const move = input.move;
+    if (vec3.length(move) > 0) {
+      vec3.scaleAndAdd(this.position, this.position, move, (camera.speed ?? 10) * dt);
     }
+    vec3.copy(camera.position, this.position);
 
-    if (!camera.isReturning) {
-      camera._updateMovement(dt, move);
-      camera._updateRotation(dt, rotDelta, roll);
+    // Roll (optional)
+    if (input.roll) {
+      const rollQ = quat.create();
+      quat.setAxisAngle(rollQ, camera.getForward(), input.roll * (camera.rollSpeed ?? 2) * dt);
+      quat.multiply(camera.orientation, rollQ, camera.orientation);
     }
   }
 }

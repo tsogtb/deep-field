@@ -1,6 +1,6 @@
 import background_vert from "/deep-field/render/shaders/background.vert.js";
 import background_frag from "/deep-field/render/shaders/background.frag.js";
-import { BASIC, CIRCLE, SQUARE, STAR, GIZMO } from "/deep-field/data/brushes.js";
+import { BASIC, CIRCLE, SQUARE, STAR, GIZMO, PHYSICS } from "/deep-field/data/brushes.js";
 import { createGizmoGroup } from "/deep-field/render/meshes/gizmo.js";
 
 export function createPointRenderer(regl) {
@@ -48,6 +48,7 @@ export function createPointRenderer(regl) {
     circle: createPointCommand(CIRCLE),
     square: createPointCommand(SQUARE),
     star:   createPointCommand(STAR),
+    physics: createPointCommand(PHYSICS),
   };
 
   const drawGizmoGroup = createGizmoGroup(regl, GIZMO.vert, GIZMO.frag);

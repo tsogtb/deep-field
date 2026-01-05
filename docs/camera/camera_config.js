@@ -1,5 +1,5 @@
 export const DefaultCameraConfig = {
-  position: [0, 0, -10],
+  position: [0, 0, 0],
   target: [0, 0, 0],
   up: [0, 1, 0],
 
@@ -7,5 +7,5 @@ export const DefaultCameraConfig = {
   near: 0.01,
   far: 1000,
 
-  mode: "free", // "free" | "orbit"
+  mode: "orbit", // "free" | "orbit"
 };
