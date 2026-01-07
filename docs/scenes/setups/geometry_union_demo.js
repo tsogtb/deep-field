@@ -92,7 +92,6 @@ const shiftedEllipsoid = new TranslatedShape(
 export const geometryUnionDemoConfig = {
   name: "geometryUnionDemo",
   brush: "basic",
-  cameraMode: "free",
 
   config: {
     samplers: [

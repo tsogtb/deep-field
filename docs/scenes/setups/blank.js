@@ -7,5 +7,4 @@ export const blankConfig = {
     counts: [0],
     sceneColors: [[0, 0, 0]],
   },
-  cameraMode: "free",
 };

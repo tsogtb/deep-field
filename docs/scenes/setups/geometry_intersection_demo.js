@@ -92,7 +92,6 @@ const shiftedEllipsoid = new TranslatedShape(
 export const geometryIntersectionDemoConfig = {
   name: "geometryIntersectionDemo",
   brush: "basic",
-  cameraMode: "free",
 
   config: {
     samplers: [

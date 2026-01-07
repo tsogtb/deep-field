@@ -67,7 +67,6 @@ const C = { GREEN: [0.1, 0.8, 0.2], GOLD: [1.0, 0.9, 0.3], RED: [1.0, 0.1, 0.1],
 export const christmasTreeConfig = {
   brush: "square",
   name: "christmasTree",
-  cameraMode: "free",
   config: {
     samplers: [
       () => treeCone.sample(), () => spiralVert.sample(), () => new Polygon2D(starV).sample(),
