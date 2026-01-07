@@ -161,6 +161,7 @@ const gravity = gravityCentral(CONFIG.MASS);
 export const orbitSceneConfig = {
   name: "spaghettiSimulation",
   brush: "physics",
+  cameraMode: "free",
   config: {
     samplers: [
       ...Array(SEGMENT_COUNT).fill(() => ({ x: 0, y: 0, z: 0 })),

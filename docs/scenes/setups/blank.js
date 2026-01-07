@@ -5,6 +5,6 @@ export const blankConfig = {
   config: {
     samplers: [() => ({ x: 0, y: 0, z: 0 })],
     counts: [0],
-    sceneColors: [[0, 0, 0]]
+    sceneColors: [[0, 0, 0]],
   },
 };

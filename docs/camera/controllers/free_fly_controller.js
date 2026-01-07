@@ -10,12 +10,13 @@ export class FreeFlyController {
   setPositionAndOrientation(pos, orient) {
     vec3.copy(this.position, pos);
 
-    // Extract yaw/pitch from the quaternion
     const forward = vec3.create();
+
     vec3.transformQuat(forward, [0, 0, -1], orient);
 
-    this.pitch = Math.asin(-forward[1]); // Y-up
-    this.yaw = Math.atan2(forward[0], forward[2]);
+    this.pitch = Math.asin(Math.max(-1, Math.min(1, -forward[1])));
+
+    this.yaw = Math.atan2(-forward[0], -forward[2]); 
   }
 
   update(camera, dt, input, rotDelta) {

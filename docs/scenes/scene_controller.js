@@ -47,7 +47,7 @@ export class SceneController {
   }
   
   _onSceneChanged(reason) {
-    const scene = getSceneConfig(this.currentSceneIndex);
+    const scene = this.getCurrentScene();
   
     // Default state
     this.showGizmo = true;

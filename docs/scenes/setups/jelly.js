@@ -190,6 +190,7 @@ const counts = [
 export const physicsJellyConfig = {
   brush: "circle",
   name: "physicsJellyConfig",
+  cameraMode: "free",
   config: {
     samplers: Array(
       4 + numCanals + numTentacles
