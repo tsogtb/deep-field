@@ -8,7 +8,7 @@ Last modified: 01/04/2026
 // --- Imports ---
 import { mat4, vec3, quat } from "https://esm.sh/gl-matrix";
 import { setupCanvasAndREGL } from "./render/graphics_setup.js";
-import { Camera, lookAtQuat } from "./camera/camera.js";
+import { Camera } from "./camera/camera.js";
 import { InputState, setupInput } from "./input/input_manager.js";
 import { getMovementVector } from "./input/input_processor.js";
 import { createPointRenderer } from "./render/renderer.js";
@@ -21,25 +21,24 @@ import { DefaultCameraConfig } from "./camera/camera_config.js";
 import { FreeFlyController } from "./camera/controllers/free_fly_controller.js";
 import { OrbitController } from "./camera/controllers/orbit_controller.js";
 import { AppController } from "./app/app_controller.js";
-import { CameraLerp } from "./camera/drivers/camera_lerp.js";
+import { resolveRouteFromURL } from "./app/router.js";
 
-// --- Core setup ---
+// --- Canvas & REGL setup ---
 const { canvas, regl } = setupCanvasAndREGL();
-const camera = new Camera(canvas, DefaultCameraConfig);
+const render = createPointRenderer(regl);
 
+// --- Camera setup ---
+const camera = new Camera(canvas, DefaultCameraConfig);
 camera.controller =
   DefaultCameraConfig.mode === "orbit"
     ? new OrbitController(DefaultCameraConfig)
     : new FreeFlyController();
 
-// Sync FreeFly orientation to camera
 if (camera.controller?.setPositionAndOrientation) {
   camera.controller.setPositionAndOrientation(camera.position, camera.orientation);
 }
-    
-const render = createPointRenderer(regl);
 
-// --- State ---
+// --- Scene & App state ---
 const sceneController = new SceneController(regl);
 const passiveManager = new PassiveManager(regl);
 passiveManager.init();
@@ -54,12 +53,7 @@ const ui = {
   ].filter(Boolean),
 };
 
-const app = new AppController({
-  sceneController,
-  camera,
-  passiveManager,
-  ui,
-});
+const app = new AppController({ sceneController, camera, passiveManager, ui });
 
 // --- Input ---
 setupInput(canvas, {
@@ -74,98 +68,40 @@ setupInput(canvas, {
 setupUI(sceneController);
 setupScreenshot(canvas, regl);
 
-// --- URL mode resolution ---
-const params = new URLSearchParams(window.location.search);
-if (params.get("mode") === "hero") {
-  app.setMode("hero");
+// --- Routing & URL resolution ---
+resolveRouteFromURL(app, camera);
+window.addEventListener("popstate", () => resolveRouteFromURL(app, camera));
 
-  const target = vec3.fromValues(0, 0, 0);
-
-  // Define start and end positions
-  const startPos = vec3.fromValues(0, 5, 20); // start farther back
-  const endPos   = vec3.fromValues(0, 0, 5); // zoom in closer
-
-  // Immediately place the camera at the start
-  camera.position = vec3.clone(startPos);
-  lookAtQuat(camera.orientation, startPos, target, [0, 1, 0]);
-
-  // Smooth camera lerp
-  camera.driver = new CameraLerp(
-    { position: startPos, orientation: quat.clone(camera.orientation) },
-    { position: endPos, orientation: quat.clone(camera.orientation) },
-    3.0, // duration in seconds
-    {
-      lookAtTarget: target, // always look at hero
-      loop: false,          // do not loop
-      onComplete: (cam) => {
-        // After lerp ends, keep the final position and orientation
-        // Simply remove the driver; don't reset the camera
-        camera.driver = null;
-
-        // Optionally re-enable controller (if you want manual orbit/free fly after)
-        if (camera.controller) {
-          // Start from the final lerp state
-          camera.controller.setPositionAndOrientation?.(cam.position, cam.orientation);
-        }
-      }
-    }
-  );
-}
-else if (params.get("scene") === "geometry") app.setMode("geometry");
-
-
-else if (params.get("scene") === "physics") { 
-  app.setMode("physics");
-  const target = vec3.fromValues(0, 0, 0); 
-  const startPos = vec3.fromValues(100, 60, 100); // far away 
-  const endPos = vec3.fromValues(30, 20, 30); // closer 
-  camera.driver = new CameraLerp(
-    { position: startPos, orientation: quat.create() },
-    { position: endPos, orientation: quat.create() },
-    7.0,
-    {
-      lookAtTarget: target,
-      orbitSpeed: 0.05,             // rotate horizontally
-      tiltRange: [0, Math.PI], // tilt between 30° and 60°
-      tiltSpeed: 0.15,              // speed of up/down tilt
-      loop: true
-    }
-  ); 
-}
-else app.setMode("app");
-
-// --- Render loop ---
+// --- Animation / Render loop ---
 let lastFrameTime = 0;
-
 const rotScratch = [0, 0];
 const moveScratch = { move: vec3.create(), roll: 0, level: false };
-
 
 regl.frame(({ time }) => {
   const dt = Math.min(time - lastFrameTime, 0.1);
   lastFrameTime = time;
 
-  // Camera
-  getMovementVector(InputState, camera, moveScratch); // modify in-place
-
+  
+  // --- Camera movement ---
+  getMovementVector(InputState, camera, moveScratch);
   rotScratch[0] = InputState.mouse.movementX;
   rotScratch[1] = InputState.mouse.movementY;
   camera.update(dt, moveScratch, rotScratch);
-  
   InputState.mouse.movementX = 0;
   InputState.mouse.movementY = 0;
 
-  // App logic
+  // --- App logic ---
   app.updatePerFrame(time);
 
-  // Animation
+  // --- Animate passive layers ---
   const passiveLayers = passiveManager.getVisibleLayers();
   animatePassiveObjects(passiveLayers, time);
 
+  // --- Scene animations ---
   const sceneInfo = sceneController.getCurrentScene?.();
   sceneInfo?.animate?.(sceneController.pointData, time, mat4);
 
-  // Render
+  // --- Render ---
   regl.clear({ color: [0.02, 0.02, 0.02, 1], depth: 1 });
   render(
     camera,

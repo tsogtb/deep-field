@@ -76,6 +76,7 @@ const vortex = vectorField(vortexField(CONFIG.VORTEX_STRENGTH, 5000.0));
 export const vortexOnlySceneConfig = {
   name: "vortexOnlySceneConfig",
   brush: "square",
+  cameraMode: "free",
   config: {
     samplers: Array(SEGMENT_COUNT).fill(() => ({ x: 0, y: 0, z: 0 })),
     counts: Array(SEGMENT_COUNT).fill(COUNT_PER_SEGMENT),

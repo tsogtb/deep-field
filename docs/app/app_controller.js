@@ -1,5 +1,11 @@
 import { getSceneConfig } from "../scenes/scene_manager.js";
 
+const GEOMETRY_SCENES = {
+  union: "geometryUnionDemo",
+  difference: "geometryDifferenceDemo",
+  intersection: "geometryIntersectionDemo",
+};
+
 export class AppController {
   constructor({ sceneController, camera, passiveManager, ui }) {
     this.sceneController = sceneController;
@@ -15,15 +21,18 @@ export class AppController {
     this._prevCameraOverlayVisible = null;
   }
 
-  setMode(mode) {
+  setMode(mode, geometryMode = "none") {
     this.mode = mode;
-  
+    
     if (mode === "hero") {
       this.sceneController.goToScene({ name: "blankScene", reason: "hero" });
       this._hideUI();
       this.sceneController.showGizmo = false;
     } else if (mode === "geometry") {
-      this.sceneController.goToScene({ name: "christmasTree", reason: "geometry" });
+      this.sceneController.goToScene({ 
+        name: GEOMETRY_SCENES[geometryMode] ?? "geometryUnionDemo",
+        reason: "geometry"
+      });
       this._hideUI();
       this.sceneController.showGizmo = false;
     } else if (mode === "physics") {
@@ -50,15 +59,14 @@ export class AppController {
   
     // --- Determine passive visibility ---
     const showPassive =
-      this.mode === "hero" ||
-      (this.mode !== "geometry" && sceneName !== "blankScene" && sceneName !== "spaghettiSimulation");
+      this.mode === "hero"
   
     // Only update if visibility changed
     if (this._prevPassiveVisible !== showPassive) {
       this.passiveManager.setVisibility(showPassive);
       this._prevPassiveVisible = showPassive;
     }
-  
+    
     // --- Start overlay visibility ---
     const shouldShowOverlay = this.mode === "app" && sceneName === "blankScene";
   
