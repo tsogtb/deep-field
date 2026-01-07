@@ -77,7 +77,16 @@ let lastFrameTime = 0;
 const rotScratch = [0, 0];
 const moveScratch = { move: vec3.create(), roll: 0, level: false };
 
+let firstFrame = true;
+
 regl.frame(({ time }) => {
+  if (firstFrame) {
+    const loader = document.getElementById('loader');
+    loader.style.opacity = '0';
+    setTimeout(() => loader.remove(), 800);
+    firstFrame = false;
+  }
+  
   const dt = Math.min(time - lastFrameTime, 0.1);
   lastFrameTime = time;
 
