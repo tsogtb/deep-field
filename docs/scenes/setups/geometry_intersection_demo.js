@@ -1,11 +1,11 @@
 import {
   Box3D,
   Ellipsoid3D,
-} from "../../../geometry/shapes3d.js";
+} from "/deep-field/geometry/shapes3d.js";
 
-import { CompositeShape, RotatedShape, TranslatedShape } from "../../../geometry/composites.js";
+import { CompositeShape, RotatedShape, TranslatedShape } from "/deep-field/geometry/composites.js";
 
-import { Path1D } from "../../../geometry/path1d.js";
+import { Path1D } from "/deep-field/geometry/path1d.js";
 
 /* ---------------------------------------------------------
  * Helpers
