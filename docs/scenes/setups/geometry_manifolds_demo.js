@@ -4,8 +4,8 @@ import {
   Rectangle2D,
   Polygon2D,
   Triangle2D
-} from "../../../geometry/shapes2d.js";
-import { COLORS } from "../../data/colors.js";
+} from "/deep-field/geometry/shapes2d.js";
+import { COLORS } from "/deep-field/data/colors.js";
 
 /* ---------------------------------------------------------
  * 1D MANIFOLDS — PATHS (Z-stacked)
