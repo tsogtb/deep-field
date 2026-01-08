@@ -8,6 +8,8 @@ import gizmo_vert from "/deep-field/render/shaders/gizmo.vert.js";
 import gizmo_frag from "/deep-field/render/shaders/gizmo.frag.js";
 import physics_vert from "/deep-field/render/shaders/physics.vert.js";
 import physics_frag from "/deep-field/render/shaders/physics.frag.js"
+import point_highlight_vert from "/deep-field/render/shaders/point_highlight.vert.js";
+import point_highlight_frag from "/deep-field/render/shaders/point_highlight.frag.js";
 
 const BLEND = {
   none: {
@@ -67,6 +69,13 @@ export const STAR = {
 export const PHYSICS = {
   vert: physics_vert,
   frag: physics_frag,
+  blend: BLEND.glow,
+  depth: DEPTH.glow,
+}
+
+export const GEOMETRY = {
+  vert: point_highlight_vert,
+  frag: point_highlight_frag,
   blend: BLEND.glow,
   depth: DEPTH.glow,
 }

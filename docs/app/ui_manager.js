@@ -7,6 +7,7 @@ export function setupUI(sceneController) {
   const geometryOverlay = document.getElementById("geometry-overlay");
 
   const GEOMETRY_SCENES = {
+    "geometry-manifolds": "geometryManifoldsDemo",
     "geometry-union": "geometryUnionDemo",
     "geometry-difference": "geometryDifferenceDemo",
     "geometry-intersection": "geometryIntersectionDemo",

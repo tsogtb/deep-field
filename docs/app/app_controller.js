@@ -1,9 +1,10 @@
 import { getSceneConfig } from "/deep-field/scenes/scene_manager.js";
 
 const GEOMETRY_SCENES = {
-  union: "geometryUnionDemo",
-  difference: "geometryDifferenceDemo",
-  intersection: "geometryIntersectionDemo",
+  "manifolds": "geometryManifoldsDemo",
+  "union": "geometryUnionDemo",
+  "difference": "geometryDifferenceDemo",
+  "intersection": "geometryIntersectionDemo",
 };
 
 export class AppController {

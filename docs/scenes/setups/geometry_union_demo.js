@@ -1,134 +1,81 @@
-import {
-  Box3D,
-  Ellipsoid3D,
-} from "/deep-field/geometry/shapes3d.js";
+import { Box3D, Cylinder3D, Sphere3D } from "/deep-field/geometry/shapes3d.js";
+import { CompositeShape, RotatedShape } from "/deep-field/geometry/composites.js";
+import { Circle2D } from "/deep-field//geometry/shapes2d.js";
+import { COLORS } from "/deep-field//data/colors.js";
+import { BoxWireframe } from "/deep-field//geometry/path1d.js";
 
-import { CompositeShape, RotatedShape, TranslatedShape } from "/deep-field/geometry/composites.js";
 
-import { Path1D } from "/deep-field/geometry/path1d.js";
+// --- SKELETON COMPONENTS (Located at y: -10) ---
+const sphere1Shell = new Sphere3D({ x: 2.5, y: -5, z: 0 }, 2.5, 2.48);
+const sphere2Shell = new Sphere3D({ x: -2.5, y: -5, z: 0 }, 2.5, 2.48);
 
-/* ---------------------------------------------------------
- * Helpers
- * --------------------------------------------------------- */
+const cylinderLateral = new RotatedShape(new Cylinder3D({ x: 0, y: -5, z: 0 }, 2.5, 5, 2.48), 0, Math.PI / 2, 0);
+const cylinderBase = new RotatedShape(new Circle2D({ x: -2.5, y: -5, z: 0 }, 2.5), 0, -Math.PI / 2, 0);
+const cylinderTop = new RotatedShape(new Circle2D({ x: 2.5, y: -5, z: 0 }, 2.5), 0, -Math.PI / 2, 0);
+const cylinderBaseRim = new RotatedShape(new Circle2D({ x: -2.5, y: -5, z: 0 }, 2.5, 2.49), 0, -Math.PI / 2, 0);
+const cylinderTopRim = new RotatedShape(new Circle2D({ x: 2.5, y: -5, z: 0 }, 2.5, 2.49), 0, -Math.PI / 2, 0);
 
-// Create wireframe edges for an AABB box
-const createBoxWire = ({ x, y, z }, w, h, d) => {
-  const [x0, x1] = [x - w / 2, x + w / 2];
-  const [y0, y1] = [y - h / 2, y + h / 2];
-  const [z0, z1] = [z - d / 2, z + d / 2];
+const boxBase = new Box3D({ x: 0, y: -5, z: 0 }, 4.0, 0.5, 25.0);
+const boxBaseInner = new Box3D({ x: 0, y: -5, z: 0 }, 3.98, 0.48, 24.98);
+const boxShell = new CompositeShape('difference', [boxBase, boxBaseInner]);
 
-  return [
-    // bottom
-    { start: { x: x0, y: y0, z: z0 }, end: { x: x1, y: y0, z: z0 } },
-    { start: { x: x1, y: y0, z: z0 }, end: { x: x1, y: y1, z: z0 } },
-    { start: { x: x1, y: y1, z: z0 }, end: { x: x0, y: y1, z: z0 } },
-    { start: { x: x0, y: y1, z: z0 }, end: { x: x0, y: y0, z: z0 } },
-
-    // top
-    { start: { x: x0, y: y0, z: z1 }, end: { x: x1, y: y0, z: z1 } },
-    { start: { x: x1, y: y0, z: z1 }, end: { x: x1, y: y1, z: z1 } },
-    { start: { x: x1, y: y1, z: z1 }, end: { x: x0, y: y1, z: z1 } },
-    { start: { x: x0, y: y1, z: z1 }, end: { x: x0, y: y0, z: z1 } },
-
-    // verticals
-    { start: { x: x0, y: y0, z: z0 }, end: { x: x0, y: y0, z: z1 } },
-    { start: { x: x1, y: y0, z: z0 }, end: { x: x1, y: y0, z: z1 } },
-    { start: { x: x0, y: y1, z: z0 }, end: { x: x0, y: y1, z: z1 } },
-    { start: { x: x1, y: y1, z: z0 }, end: { x: x1, y: y1, z: z1 } }
-  ];
-};
-
-/* ---------------------------------------------------------
- * Colors
- * --------------------------------------------------------- */
-
-const C = {
-  WHITE: [1.0, 1.0, 1.0],
-  CYAN:  [0.2, 0.8, 1.0],
-  ORANGE:[1.0, 0.6, 0.2],
-  PURPLE:[0.7, 0.4, 1.0]
-};
-
-/* ---------------------------------------------------------
- * Geometry Setup
- * --------------------------------------------------------- */
-
-// --- Wireframe Cube ---
-const cubeCenter = { x: 0, y: 0, z: 0 };
-const cubeSize = 6;
-
-const cubeWire = new Path1D(
-  createBoxWire(cubeCenter, cubeSize, cubeSize, cubeSize)
+const boxWireframe = BoxWireframe(
+  { x: 0, y: -5, z: 0 },
+  4.0,
+  0.5,
+  25.0
 );
 
-// --- Solid Box (for comparison) ---
-const solidBox = new Box3D(cubeCenter, cubeSize, cubeSize, cubeSize);
+// --- SOLID COMPONENTS FOR UNION (Located at y: 10) ---
+const box = new Box3D({ x: 0, y: 5, z: 0 }, 4.0, 0.5, 25.0);
+const cylinder = new RotatedShape(new Cylinder3D({ x: 0, y: 5, z: 0 }, 2.5, 5), 0, Math.PI / 2, 0);
+const sphere1 = new Sphere3D({ x: 2.5, y: 5, z: 0 }, 2.5);
+const sphere2 = new Sphere3D({ x: -2.5, y: 5, z: 0 }, 2.5);
 
-// --- Ellipsoid Shell ---
-const ellipsoidShell = new Ellipsoid3D(
-  { x: 0, y: 0, z: 0 },
-  3.5, 2.5, 4.0,   // outer radii
-  2.8, 1.8, 3.2    // inner radii (hollow)
-);
-
-// --- Optional rotation ---
-const rotatedEllipsoid = new RotatedShape(
-  ellipsoidShell,
-  Math.PI * 0.25,
-  Math.PI * 0.25,
-  0
-);
-
-// --- Optional translation ---
-const shiftedEllipsoid = new TranslatedShape(
-  rotatedEllipsoid,
-  0, 0, 0
-);
-
-/* ---------------------------------------------------------
- * Scene Export
- * --------------------------------------------------------- */
+const result = new CompositeShape("union", [cylinder, sphere1, sphere2, box]);
 
 export const geometryUnionDemoConfig = {
   name: "geometryUnionDemo",
-  brush: "basic",
+  brush: "circle",
 
   config: {
     samplers: [
-      () => cubeWire.sample(),        // id 0
-      () => solidBox.sample(),        // id 1
-      () => ellipsoidShell.sample() // id 2
+      () => boxWireframe.sample(),
+      () => boxShell.sample(),        // The Solar Wings
+      () => cylinderLateral.sample(), // The Main Body
+      () => cylinderBase.sample(),    // Left Cap Face
+      () => cylinderTop.sample(),     // Right Cap Face
+      () => cylinderBaseRim.sample(),
+      () => cylinderTopRim.sample(),
+      () => sphere1Shell.sample(),    // Left Sphere
+      () => sphere2Shell.sample(),    // Right Sphere
+      () => result.sample(),          // The Final Union
     ],
 
     counts: [
-      2000,   // wireframe
-      12000,  // solid cube
-      18000   // ellipsoid shell
+      3000,
+      15000, // box
+      10000, // cylinder
+      5000,  // base
+      5000,  // top
+      1500,
+      1500,
+      10000, // sphere1
+      10000, // sphere2
+      150000 // result (High density for the hero object)
     ],
 
     sceneColors: [
-      C.WHITE,
-      C.CYAN,
-      C.ORANGE
+      COLORS.BLUE_CORE,
+      COLORS.BLUE_CORE, // box
+      COLORS.CYAN_MIST,  // cylinder
+      COLORS.CYAN_MIST,  // base
+      COLORS.CYAN_MIST,  // top
+      COLORS.CYAN_MIST,  // base
+      COLORS.CYAN_MIST,  // top
+      COLORS.BLUE_MIST,  // sphere1
+      COLORS.BLUE_MIST,  // sphere2
+      COLORS.UV_CORE // result
     ]
-  },
-
-  /* -----------------------------------------------------
-   * Animation Hook
-   * ----------------------------------------------------- */
-
-  animate: (pointData, time, mat4) => {
-    pointData.forEach(obj => {
-      mat4.identity(obj.modelMatrix);
-
-      // slow global spin
-      mat4.rotateY(obj.modelMatrix, obj.modelMatrix, time * 0.2);
-
-      // subtle breathing on ellipsoid
-      if (obj.id === 2) {
-        const s = 1 + Math.sin(time * 2.0) * 0.05;
-        mat4.scale(obj.modelMatrix, obj.modelMatrix, [s, s, s]);
-      }
-    });
-  }
+  } 
 };
