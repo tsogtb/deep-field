@@ -231,3 +231,52 @@ export const conicHelix = ({ center, radiusStart, radiusEnd, height, turns }) =>
     z: center.z + t * height
   };
 };
+
+/**
+ * Wireframe box (edges only) as a single Path1D
+ */
+export function BoxWireframe(center, w, h, d) {
+  const hx = w / 2;
+  const hy = h / 2;
+  const hz = d / 2;
+
+  const cx = center.x;
+  const cy = center.y;
+  const cz = center.z;
+
+  const v = (x, y, z) => ({ x, y, z });
+
+  const c = {
+    LBF: v(cx - hx, cy - hy, cz - hz),
+    RBF: v(cx + hx, cy - hy, cz - hz),
+    LTF: v(cx - hx, cy + hy, cz - hz),
+    RTF: v(cx + hx, cy + hy, cz - hz),
+
+    LBB: v(cx - hx, cy - hy, cz + hz),
+    RBB: v(cx + hx, cy - hy, cz + hz),
+    LTB: v(cx - hx, cy + hy, cz + hz),
+    RTB: v(cx + hx, cy + hy, cz + hz),
+  };
+
+  const line = (start, end) => ({ start, end });
+
+  return new Path1D([
+    // Bottom face
+    line(c.LBF, c.RBF),
+    line(c.RBF, c.RBB),
+    line(c.RBB, c.LBB),
+    line(c.LBB, c.LBF),
+
+    // Top face
+    line(c.LTF, c.RTF),
+    line(c.RTF, c.RTB),
+    line(c.RTB, c.LTB),
+    line(c.LTB, c.LTF),
+
+    // Vertical edges
+    line(c.LBF, c.LTF),
+    line(c.RBF, c.RTF),
+    line(c.LBB, c.LTB),
+    line(c.RBB, c.RTB),
+  ]);
+}

@@ -1,134 +1,77 @@
-import {
-  Box3D,
-  Ellipsoid3D,
-} from "../../../geometry/shapes3d.js";
+import { Box3D, Ellipsoid3D } from "../../../geometry/shapes3d.js";
+import { CompositeShape } from "../../../geometry/composites.js";
+import { COLORS } from "../../data/colors.js";
+import { BoxWireframe } from "../../../geometry/path1d.js";
 
-import { CompositeShape, RotatedShape, TranslatedShape } from "../../../geometry/composites.js";
 
-import { Path1D } from "../../../geometry/path1d.js";
-
-/* ---------------------------------------------------------
- * Helpers
- * --------------------------------------------------------- */
-
-// Create wireframe edges for an AABB box
-const createBoxWire = ({ x, y, z }, w, h, d) => {
-  const [x0, x1] = [x - w / 2, x + w / 2];
-  const [y0, y1] = [y - h / 2, y + h / 2];
-  const [z0, z1] = [z - d / 2, z + d / 2];
-
-  return [
-    // bottom
-    { start: { x: x0, y: y0, z: z0 }, end: { x: x1, y: y0, z: z0 } },
-    { start: { x: x1, y: y0, z: z0 }, end: { x: x1, y: y1, z: z0 } },
-    { start: { x: x1, y: y1, z: z0 }, end: { x: x0, y: y1, z: z0 } },
-    { start: { x: x0, y: y1, z: z0 }, end: { x: x0, y: y0, z: z0 } },
-
-    // top
-    { start: { x: x0, y: y0, z: z1 }, end: { x: x1, y: y0, z: z1 } },
-    { start: { x: x1, y: y0, z: z1 }, end: { x: x1, y: y1, z: z1 } },
-    { start: { x: x1, y: y1, z: z1 }, end: { x: x0, y: y1, z: z1 } },
-    { start: { x: x0, y: y1, z: z1 }, end: { x: x0, y: y0, z: z1 } },
-
-    // verticals
-    { start: { x: x0, y: y0, z: z0 }, end: { x: x0, y: y0, z: z1 } },
-    { start: { x: x1, y: y0, z: z0 }, end: { x: x1, y: y0, z: z1 } },
-    { start: { x: x0, y: y1, z: z0 }, end: { x: x0, y: y1, z: z1 } },
-    { start: { x: x1, y: y1, z: z0 }, end: { x: x1, y: y1, z: z1 } }
-  ];
-};
-
-/* ---------------------------------------------------------
- * Colors
- * --------------------------------------------------------- */
-
-const C = {
-  WHITE: [1.0, 1.0, 1.0],
-  CYAN:  [0.2, 0.8, 1.0],
-  ORANGE:[1.0, 0.6, 0.2],
-  PURPLE:[0.7, 0.4, 1.0]
-};
-
-/* ---------------------------------------------------------
- * Geometry Setup
- * --------------------------------------------------------- */
-
-// --- Wireframe Cube ---
-const cubeCenter = { x: 0, y: 0, z: 0 };
-const cubeSize = 6;
-
-const cubeWire = new Path1D(
-  createBoxWire(cubeCenter, cubeSize, cubeSize, cubeSize)
+// Primary shape (what remains)
+const boxOuter = new Box3D(
+  { x: 0, y: -5, z: 0 },
+  12.0, 4.0, 8.0
 );
 
-// --- Solid Box (for comparison) ---
-const solidBox = new Box3D(cubeCenter, cubeSize, cubeSize, cubeSize);
-
-// --- Ellipsoid Shell ---
+// Subtractor (what is removed)
 const ellipsoidShell = new Ellipsoid3D(
-  { x: 0, y: 0, z: 0 },
-  3.5, 2.5, 4.0,   // outer radii
-  2.8, 1.8, 3.2    // inner radii (hollow)
+  { x: 0, y: -5, z: 0 },
+  6.6, 2.2, 4.4,
+  6.59, 2.19, 4.39,
 );
 
-// --- Optional rotation ---
-const rotatedEllipsoid = new RotatedShape(
-  ellipsoidShell,
-  Math.PI * 0.25,
-  Math.PI * 0.25,
-  0
+// Visual-only shell (optional, helps explain subtraction)
+const boxInner = new Box3D(
+  { x: 0, y: -5, z: 0 },
+  11.99, 3.99, 7.999
 );
 
-// --- Optional translation ---
-const shiftedEllipsoid = new TranslatedShape(
-  rotatedEllipsoid,
-  0, 0, 0
+const boxShell = new CompositeShape("difference", [
+  boxOuter,
+  boxInner
+]);
+
+const boxWireframe = BoxWireframe(
+  { x: 0, y: -5, z: 0 },
+  12.0,
+  4.0,
+  8.0
 );
 
 /* ---------------------------------------------------------
- * Scene Export
+ * FINAL DIFFERENCE RESULT (Located at y: +5)
+ * --------------------------------------------------------- */
+
+const result = new CompositeShape("difference", [
+  new Box3D({ x: 0, y: 5, z: 0 }, 12.0, 4.0, 8.0),
+  new Ellipsoid3D({ x: 0, y: 5, z: 0 }, 6.6, 2.2, 4.4)
+]);
+
+/* ---------------------------------------------------------
+ * DEMO CONFIG
  * --------------------------------------------------------- */
 
 export const geometryDifferenceDemoConfig = {
   name: "geometryDifferenceDemo",
-  brush: "basic",
+  brush: "circle",
 
   config: {
     samplers: [
-      () => cubeWire.sample(),        // id 0
-      () => solidBox.sample(),        // id 1
-      () => ellipsoidShell.sample() // id 2
+      () => boxWireframe.sample(),
+      () => boxShell.sample(), // Base volume reference
+      () => ellipsoidShell.sample(),
+      () => result.sample(),   // Final difference (hero)
     ],
 
     counts: [
-      2000,   // wireframe
-      12000,  // solid cube
-      18000   // ellipsoid shell
+      5000,
+      25000,   // shell (context)
+      35000,
+      200000,  // result (hero density)
     ],
 
     sceneColors: [
-      C.WHITE,
-      C.CYAN,
-      C.ORANGE
+      COLORS.BLUE_MIST,  
+      COLORS.BLUE_MIST,     
+      COLORS.CYAN_MIST,       
+      COLORS.UV_CORE // result
     ]
-  },
-
-  /* -----------------------------------------------------
-   * Animation Hook
-   * ----------------------------------------------------- */
-
-  animate: (pointData, time, mat4) => {
-    pointData.forEach(obj => {
-      mat4.identity(obj.modelMatrix);
-
-      // slow global spin
-      mat4.rotateY(obj.modelMatrix, obj.modelMatrix, time * 0.2);
-
-      // subtle breathing on ellipsoid
-      if (obj.id === 2) {
-        const s = 1 + Math.sin(time * 2.0) * 0.05;
-        mat4.scale(obj.modelMatrix, obj.modelMatrix, [s, s, s]);
-      }
-    });
   }
 };
