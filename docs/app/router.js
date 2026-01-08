@@ -1,105 +1,106 @@
-// src/app/router.js
 import { vec3, quat } from "https://esm.sh/gl-matrix";
 import { CameraLerp } from "../camera/drivers/camera_lerp.js";
 import { lookAtQuat } from "../camera/camera.js";
 
+/* --------------------------------
+   Helper: Stop any active camera driver on user interaction
+-------------------------------- */
+function setupStopCamera(camera) {
+  const stopCamera = () => {
+    if (camera.driver instanceof CameraLerp) {
+      camera.driver = null;
+      camera.controller?.setPositionAndOrientation?.(camera.position, camera.orientation);
+    }
+    window.removeEventListener("pointerdown", stopCamera);
+  };
+  window.addEventListener("pointerdown", stopCamera);
+}
 
-
+/* --------------------------------
+   Resolve initial scene & camera from URL
+-------------------------------- */
 export function resolveRouteFromURL(app, camera) {
   const params = new URLSearchParams(window.location.search);
+  const scene = params.get("scene");
+  const mode  = params.get("mode");
 
-  // Grouping geometry scenes to share the same camera behavior
-  const isGeometryScene = [
-    "geometry-manifolds", 
-    "geometry-union", 
-    "geometry-difference", 
+  /* ------------------------------
+     Geometry scenes
+  ------------------------------ */
+  const geometryScenes = [
+    "geometry-manifolds",
+    "geometry-union",
+    "geometry-difference",
     "geometry-intersection"
-  ].includes(params.get("scene"));
+  ];
+  const isGeometryScene = geometryScenes.includes(scene);
 
-  if (params.get("scene") === "geometry-manifolds") {
+  if (scene === "geometry-manifolds") {
     app.setMode("geometry", "manifolds");
-  
-    // Camera path along the connector line (slightly above Y to avoid the beam)
-    const startPos = vec3.fromValues(0, 0.03, -30); // bottom tip, y offset
-    const endPos   = vec3.fromValues(0, 0.03, 25);  // top tip, y offset
-  
-    // Orientation: always look forward along the path
+    document.body.classList.add("geometry-active");
+
+    setTimeout(() => document.body.classList.add("geometry-faded"), 3500);
+
+    // Camera along the connector line
+    const startPos = vec3.fromValues(0, 0.03, -30);
+    const endPos   = vec3.fromValues(0, 0.03, 25);
+
     const startOrientation = quat.create();
-    const endOrientation = quat.create();
-  
-    // Look slightly ahead along the line (also offset Y)
+    const endOrientation   = quat.create();
+
     lookAtQuat(startOrientation, startPos, vec3.fromValues(0, 0.03, endPos[2]), [0, 1, 0]);
     lookAtQuat(endOrientation, endPos, vec3.fromValues(0, 0.03, startPos[2]), [0, 1, 0]);
-  
+
     camera.position = vec3.clone(startPos);
     camera.driver = new CameraLerp(
       { position: startPos, orientation: startOrientation },
       { position: endPos, orientation: endOrientation },
-      6.0, // total duration
+      10.0,
       {
-        loop: true, // ping-pong along the connector
+        loop: true,
         onUpdate: (cam, t) => {
-          const threshold = 0.98; // 98% of path before turning
-  
+          const threshold = 0.98;
+
           if (t < threshold) {
-            // Look forward along the connector (keep Y offset)
             lookAtQuat(cam.orientation, cam.position, vec3.fromValues(0, 0.01, 25), [0,1,0]);
           } else {
-            // At the end: smoothly rotate to look back down
-            const turnT = (t - threshold) / (1 - threshold); // remap 98→100% to 0→1
+            const turnT = (t - threshold) / (1 - threshold);
             quat.slerp(cam.orientation, startOrientation, endOrientation, turnT);
           }
         }
       }
     );
-  
-    // Stop lerp on user interaction
-    const stopCamera = () => {
-      if (camera.driver instanceof CameraLerp) {
-        camera.driver = null;
-        camera.controller?.setPositionAndOrientation?.(camera.position, camera.orientation);
-      }
-      window.removeEventListener("pointerdown", stopCamera);
-    };
-    window.addEventListener("pointerdown", stopCamera);
-  }
-  
-   else if (isGeometryScene) {
-    const subMode = params.get("scene").split("-")[1];
+
+    setupStopCamera(camera);
+
+  } else if (isGeometryScene) {
+    const subMode = scene.split("-")[1];
     app.setMode("geometry", subMode);
+    document.body.classList.add("geometry-active");
+    setTimeout(() => document.body.classList.add("geometry-faded"), 3500);
 
     const target = vec3.fromValues(0, 0, 0);
-    // Position the camera to see both the shells at -10 and union at 10
-    const startPos = vec3.fromValues(15, 35, 0); 
-    const endPos   = vec3.fromValues(15, 35, 0);
+    const pos = vec3.fromValues(15, 35, 0);
 
     camera.driver = new CameraLerp(
-      { position: startPos, orientation: quat.create() },
-      { position: endPos, orientation: quat.create() },
-      10.0, // Duration of one cycle
+      { position: pos, orientation: quat.create() },
+      { position: pos, orientation: quat.create() },
+      10.0,
       {
         lookAtTarget: target,
-        orbitSpeed: 0.1,    // Slow rotation
-        tiltRange: [Math.PI * 0.35, Math.PI * 0.35],  // Locks vertical tilt (removes up/down)
-        tiltSpeed: 0,       // Disables vertical movement
+        orbitSpeed: 0.1,
+        tiltRange: [Math.PI * 0.35, Math.PI * 0.35],
+        tiltSpeed: 0,
         loop: true
       }
     );
 
-    // Stop the driver on user click
-    const stopCamera = () => {
-      if (camera.driver instanceof CameraLerp) {
-        camera.driver = null;
-        // Sync the manual controller so the transition is seamless
-        camera.controller?.setPositionAndOrientation?.(camera.position, camera.orientation);
-      }
-      window.removeEventListener("pointerdown", stopCamera);
-    };
+    setupStopCamera(camera);
 
-    window.addEventListener("pointerdown", stopCamera);
-  }
-
-  else if (params.get("mode") === "hero") {
+  /* ------------------------------
+     Hero mode
+  ------------------------------ */
+  } else if (mode === "hero") {
     app.setMode("hero");
 
     const target = vec3.fromValues(0, 0, 0);
@@ -122,20 +123,11 @@ export function resolveRouteFromURL(app, camera) {
         }
       }
     );
-  /*
-  } else if (params.get("scene") === "geometry-shells") {
-    app.setMode("geometry", "shells");   
 
-  } else if (params.get("scene") === "geometry-union") {
-    app.setMode("geometry", "union");
-
-  } else if (params.get("scene") === "geometry-difference") {
-    app.setMode("geometry", "difference");
-
-  } else if (params.get("scene") === "geometry-intersection") {
-    app.setMode("geometry", "intersection");
-  */  
-  } else if (params.get("scene") === "physics") {
+  /* ------------------------------
+     Physics scene
+  ------------------------------ */
+  } else if (scene === "physics") {
     app.setMode("physics");
 
     const target = vec3.fromValues(0, 0, 0);
@@ -155,6 +147,9 @@ export function resolveRouteFromURL(app, camera) {
       }
     );
 
+  /* ------------------------------
+     Default fallback
+  ------------------------------ */
   } else {
     app.setMode("app");
   }

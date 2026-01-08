@@ -1,6 +1,9 @@
 import { vec3, quat } from "https://esm.sh/gl-matrix";
 import { lookAtQuat } from "../camera.js";
 
+/* --------------------------------
+   CameraLerp: Smooth interpolation between two camera states
+-------------------------------- */
 export class CameraLerp {
   /**
    * @param from { position, orientation }
@@ -10,7 +13,7 @@ export class CameraLerp {
    *   lookAtTarget?: vec3, 
    *   orbitSpeed?: number,        // horizontal orbit speed in rad/sec
    *   tiltRange?: [number, number], // vertical tilt range in rad [min, max]
-   *   tiltSpeed?: number,         // vertical tilt speed (how fast it oscillates)
+   *   tiltSpeed?: number,         // vertical tilt speed (oscillation)
    *   onUpdate?: function, 
    *   onComplete?: function, 
    *   loop?: boolean 
@@ -26,29 +29,34 @@ export class CameraLerp {
     this._radiusVec = vec3.create();
     this._up = vec3.fromValues(0, 1, 0);
 
+    // --- Options ---
     this.lookAtTarget = options.lookAtTarget || null;
-    this.orbitSpeed = options.orbitSpeed || 0;
-    this.tiltRange = options.tiltRange || null;
-    this.tiltSpeed = options.tiltSpeed || 1;
-    this.onUpdate = options.onUpdate || null;
-    this.onComplete = options.onComplete || null;
-    this.loop = options.loop || false;
+    this.orbitSpeed   = options.orbitSpeed || 0;
+    this.tiltRange    = options.tiltRange || null;
+    this.tiltSpeed    = options.tiltSpeed || 1;
+    this.onUpdate     = options.onUpdate || null;
+    this.onComplete   = options.onComplete || null;
+    this.loop         = options.loop || false;
+
     this._completed = false;
   }
 
+  /* --------------------------------
+     Update camera per frame
+  -------------------------------- */
   update(camera, dt) {
     this.t += dt;
-    let a = Math.min(this.t / this.duration, 1);
-    const smoothedA = a * a * (3 - 2 * a);
 
-    // --- Lerp position ---
+    let a = Math.min(this.t / this.duration, 1);
+    const smoothedA = a * a * (3 - 2 * a); // Smoothstep interpolation
+
+    // --- Interpolate position ---
     vec3.lerp(camera.position, this.from.position, this.to.position, smoothedA);
 
     if (this.lookAtTarget) {
-      // Use pre-allocated scratch
+      // --- Orbit & tilt logic ---
       const radiusVec = this._radiusVec;
       vec3.subtract(radiusVec, camera.position, this.lookAtTarget);
-
       const radius = vec3.length(radiusVec);
 
       // Horizontal orbit
@@ -65,22 +73,22 @@ export class CameraLerp {
         phi = Math.max(0.01, Math.min(Math.PI - 0.01, phi));
       }
 
-      // Spherical → Cartesian
+      // Spherical → Cartesian conversion
       const sinPhi = Math.sin(phi);
       camera.position[0] = this.lookAtTarget[0] + radius * sinPhi * Math.sin(theta);
       camera.position[1] = this.lookAtTarget[1] + radius * Math.cos(phi);
       camera.position[2] = this.lookAtTarget[2] + radius * sinPhi * Math.cos(theta);
 
-      // Always look at target using pre-allocated up vector
+      // Always look at target
       lookAtQuat(camera.orientation, camera.position, this.lookAtTarget, this._up);
     } else {
-      // Orientation slerp
+      // Orientation slerp between from/to
       quat.slerp(camera.orientation, this.from.orientation, this.to.orientation, smoothedA);
     }
 
     if (this.onUpdate) this.onUpdate(camera, smoothedA);
 
-    // Completion
+    // --- Completion handling ---
     if (a === 1 && !this.loop && !this._completed) {
       this._completed = true;
       if (this.onComplete) this.onComplete(camera);
