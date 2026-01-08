@@ -1,8 +1,8 @@
 /*
 (c) 2026 Tsogt
-This code is licensed under the MIT License.
-Created: 12/20/2025
-Last modified: 01/04/2026
+Licensed under the MIT License.
+Created: 2025-12-20
+Last modified: 2026-01-08
 */
 
 // --- Imports ---
@@ -29,17 +29,22 @@ const render = createPointRenderer(regl);
 
 // --- Camera setup ---
 const camera = new Camera(canvas, DefaultCameraConfig);
+
 camera.controller =
   DefaultCameraConfig.mode === "orbit"
     ? new OrbitController(DefaultCameraConfig)
     : new FreeFlyController();
 
 if (camera.controller?.setPositionAndOrientation) {
-  camera.controller.setPositionAndOrientation(camera.position, camera.orientation);
+  camera.controller.setPositionAndOrientation(
+    camera.position,
+    camera.orientation
+  );
 }
 
-// --- Scene & App state ---
+// --- Scene & application state ---
 const sceneController = new SceneController(regl);
+
 const passiveManager = new PassiveManager(regl);
 passiveManager.init();
 
@@ -53,9 +58,14 @@ const ui = {
   ].filter(Boolean),
 };
 
-const app = new AppController({ sceneController, camera, passiveManager, ui });
+const app = new AppController({
+  sceneController,
+  camera,
+  passiveManager,
+  ui,
+});
 
-// --- Input ---
+// --- Input setup ---
 setupInput(canvas, {
   onKeyDown: (key) => {
     if (key === "n") sceneController.nextScene();
@@ -68,14 +78,21 @@ setupInput(canvas, {
 setupUI(sceneController);
 setupScreenshot(canvas, regl);
 
-// --- Routing & URL resolution ---
+// --- Routing ---
 resolveRouteFromURL(app, camera);
-window.addEventListener("popstate", () => resolveRouteFromURL(app, camera));
+window.addEventListener("popstate", () =>
+  resolveRouteFromURL(app, camera)
+);
 
-// --- Animation / Render loop ---
+// --- Animation / render loop ---
 let lastFrameTime = 0;
+
 const rotScratch = [0, 0];
-const moveScratch = { move: vec3.create(), roll: 0, level: false };
+const moveScratch = {
+  move: vec3.create(),
+  roll: 0,
+  level: false,
+};
 
 let firstFrame = true;
 
@@ -90,28 +107,40 @@ regl.frame(({ time }) => {
   const dt = Math.min(time - lastFrameTime, 0.1);
   lastFrameTime = time;
 
-  
   // --- Camera movement ---
   getMovementVector(InputState, camera, moveScratch);
+
   rotScratch[0] = InputState.mouse.movementX;
   rotScratch[1] = InputState.mouse.movementY;
+
   camera.update(dt, moveScratch, rotScratch);
+
   InputState.mouse.movementX = 0;
   InputState.mouse.movementY = 0;
+
+  camera.updateOverlay(); 
 
   // --- App logic ---
   app.updatePerFrame(time);
 
-  // --- Animate passive layers ---
+  // --- Passive layers ---
   const passiveLayers = passiveManager.getVisibleLayers();
   animatePassiveObjects(passiveLayers, time);
 
-  // --- Scene animations ---
+  // --- Scene animation ---
   const sceneInfo = sceneController.getCurrentScene?.();
-  sceneInfo?.animate?.(sceneController.pointData, time, mat4);
+  sceneInfo?.animate?.(
+    sceneController.pointData,
+    time,
+    mat4
+  );
 
   // --- Render ---
-  regl.clear({ color: [0.02, 0.02, 0.02, 1], depth: 1 });
+  regl.clear({
+    color: [0.02, 0.02, 0.02, 1],
+    depth: 1,
+  });
+
   render(
     camera,
     time,

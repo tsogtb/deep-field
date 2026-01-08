@@ -4,75 +4,95 @@ import { createPointData } from "/deep-field/data/point_data.js";
 export class SceneController {
   constructor(regl) {
     this.regl = regl;
+
     this.currentSceneIndex = 0;
     this.currentBrush = "star";
     this.pointData = [];
-    //this.loadScene(0);
 
-    this.showGizmo = true;
+    this.showGizmo = false;
+
+    // Scene is intentionally not auto-loaded here
+    // Routing / AppController controls initial scene
   }
 
+  /* --- Scene navigation --- */
+  
   setSceneByName(name) {
     this.goToScene({ name, reason: "direct" });
   }
 
-  _loadSceneInternal(index) {
-    this.pointData.forEach(obj => {
-      obj.buffer?.destroy();
-      obj.colorBuffer?.destroy();
+  nextScene() {
+    this.goToScene({
+      index: this.currentSceneIndex + 1,
+      reason: "cycle",
     });
-  
-    this.currentSceneIndex = index % SCENES.length;
-    const scene = getSceneConfig(this.currentSceneIndex);
-  
-    if (scene.brush) this.currentBrush = scene.brush;
-    this.pointData = createPointData(this.regl, scene.config);
   }
 
   goToScene({ index = null, name = null, reason = "unknown" } = {}) {
     let targetIndex = index;
-  
+
     if (name !== null) {
-      targetIndex = SCENES.findIndex(s => s.name === name);
+      targetIndex = SCENES.findIndex(scene => scene.name === name);
     }
-  
+
     if (targetIndex == null || targetIndex === -1) {
-      console.warn(`Scene not found (${name ?? index}), falling back to 0`);
+      console.warn(
+        `Scene not found (${name ?? index}), falling back to index 0`
+      );
       targetIndex = 0;
     }
-  
-    this._loadSceneInternal(targetIndex);
-  
+
+    this._loadScene(targetIndex);
     this._onSceneChanged(reason);
   }
-  
+
+  /* --- Scene loading --- */
+
+  _loadScene(index) {
+    this._destroyPointBuffers();
+
+    this.currentSceneIndex = index % SCENES.length;
+    const scene = getSceneConfig(this.currentSceneIndex);
+
+    if (scene.brush) {
+      this.currentBrush = scene.brush;
+    }
+
+    this.pointData = createPointData(this.regl, scene.config);
+  }
+
+  _destroyPointBuffers() {
+    for (const obj of this.pointData) {
+      obj.buffer?.destroy();
+      obj.colorBuffer?.destroy();
+    }
+  }
+
+  /* --- Scene state hooks --- */
+
   _onSceneChanged(reason) {
     const scene = this.getCurrentScene();
-  
-    // Default state
-    this.showGizmo = true;
-  
-    if (scene.hideGizmo) {
-      this.showGizmo = false;
-    }
-  
-    // Later:
-    // camera transitions
-    // UI state
-    // analytics
-  }
-  
-  
 
-  nextScene() {
-    this.goToScene({ index: this.currentSceneIndex + 1, reason: "cycle" });
+    if (this.showGizmo === undefined) {
+      this.showGizmo = scene.hideGizmo ? false : true;
+    }
+
+    // Reserved:
+    // - camera transitions
+    // - UI state sync
+    // - analytics / logging
   }
+
+  /* --- Brush control --- */
 
   swapBrush() {
     const brushes = ["basic", "circle", "square", "star", "physics"];
     const idx = brushes.indexOf(this.currentBrush);
+
     this.currentBrush = brushes[(idx + 1) % brushes.length];
   }
+
+  /* --- Debug / helpers --- */
 
   toggleGizmo() {
     this.showGizmo = !this.showGizmo;
@@ -81,7 +101,4 @@ export class SceneController {
   getCurrentScene() {
     return getSceneConfig(this.currentSceneIndex);
   }
-  
 }
-
-

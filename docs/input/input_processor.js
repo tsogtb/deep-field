@@ -1,11 +1,16 @@
 import { vec3 } from "https://esm.sh/gl-matrix";
 
+// Reusable scratch object to avoid allocations each frame
 const moveScratch = { move: vec3.create(), roll: 0, level: false };
 
-
 /**
- * Generates a normalized movement vector and roll for the current controller type.
- * Supports FreeFly and Orbit seamlessly.
+ * Computes the movement vector and roll for the current camera controller.
+ * Supports both FreeFly and Orbit controllers seamlessly.
+ *
+ * @param {object} InputState - The current input state (keys, mouse, etc.)
+ * @param {Camera} camera - The camera instance
+ * @param {object} out - Optional reusable output object
+ * @returns {object} - { move: vec3, roll: number, level: boolean }
  */
 export function getMovementVector(InputState, camera, out = moveScratch) {
   const { move } = out;
@@ -13,7 +18,10 @@ export function getMovementVector(InputState, camera, out = moveScratch) {
   out.roll = 0;
   out.level = InputState.keys.has("KeyR");
 
-  if (camera.controller?.constructor.name === "FreeFlyController") {
+  const controllerName = camera.controller?.constructor.name;
+
+  // --- FreeFly movement ---
+  if (controllerName === "FreeFlyController") {
     if (InputState.keys.has("KeyW")) vec3.add(move, move, camera.getForward());
     if (InputState.keys.has("KeyS")) vec3.sub(move, move, camera.getForward());
     if (InputState.keys.has("KeyD")) vec3.add(move, move, camera.getRight());
@@ -21,21 +29,28 @@ export function getMovementVector(InputState, camera, out = moveScratch) {
     if (InputState.keys.has("Space")) vec3.add(move, move, camera.getUp());
     if (InputState.keys.has("ShiftLeft")) vec3.sub(move, move, camera.getUp());
   }
-  else if (camera.controller?.constructor.name === "OrbitController") {
+
+  // --- Orbit movement ---
+  else if (controllerName === "OrbitController") {
     if (InputState.keys.has("KeyW")) move[2] -= 1;
     if (InputState.keys.has("KeyS")) move[2] += 1;
     if (InputState.keys.has("KeyA")) camera.controller.theta -= 0.05;
     if (InputState.keys.has("KeyD")) camera.controller.theta += 0.05;
   }
 
+  // Normalize the vector if non-zero
   if (vec3.length(move) > 0) vec3.normalize(move, move);
 
-  if (InputState.keys.has("KeyQ")) out.roll -= 1;
-  if (InputState.keys.has("KeyE")) out.roll += 1;
-  if (camera.controller?.constructor.name !== "FreeFlyController") out.roll = 0;
+  // Roll keys (only for FreeFly)
+  if (controllerName === "FreeFlyController") {
+    if (InputState.keys.has("KeyQ")) out.roll -= 1;
+    if (InputState.keys.has("KeyE")) out.roll += 1;
+  } else {
+    out.roll = 0;
+  }
 
+  // Trigger camera return
   if (InputState.keys.has("KeyO")) camera.isReturning = true;
 
-  return out; // reuse the object
+  return out; // reuses the same object each frame
 }
-
