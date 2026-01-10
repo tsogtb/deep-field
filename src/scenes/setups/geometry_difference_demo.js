@@ -61,10 +61,10 @@ export const geometryDifferenceDemoConfig = {
     ],
 
     counts: [
-      10000,
-      25000,   // shell (context)
-      25000,
-      100000,  // result (hero density)
+      5000,
+      12500,   // shell (context)
+      12500,
+      50000,  // result (hero density)
     ],
 
     sceneColors: [

@@ -53,16 +53,16 @@ export const geometryUnionDemoConfig = {
     ],
 
     counts: [
-      6000,
-      15000, // box
-      15000, // cylinder
-      2000,  // base
-      2000,  // top
-      1500,
-      1500,
-      10000, // sphere1
-      10000, // sphere2
-      100000 // result (High density for the hero object)
+      3000,
+      7500, // box
+      7500, // cylinder
+      1000,  // base
+      1000,  // top
+      750,
+      750,
+      5000, // sphere1
+      5000, // sphere2
+      50000 // result (High density for the hero object)
     ],
 
     sceneColors: [

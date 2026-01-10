@@ -147,19 +147,19 @@ export const geometryManifoldsDemoConfig = {
     ],
 
     counts: [
-      2_000,
+      1_000,
+      500,
+      500,
       1_000,
       1_000,
-      2_000,
-      2_000,
-      2_000,
-      2_000,
-      5_000,  // regular helix
+      1_000,
+      1_000,
+      2_500,  // regular helix
       //5_000,   // quadratic Bézier
-      5_000,  // triangle fill
-      5_000,  // square fill
-      5_000,  // hexagon fill
-      5_000   // circle fill
+      2_500,  // triangle fill
+      2_500,  // square fill
+      2_500,  // hexagon fill
+      2_500   // circle fill
     ],
 
     sceneColors: [
