@@ -103,6 +103,7 @@ export function resolveRouteFromURL(app, camera) {
   } else if (mode === "hero") {
     app.setMode("hero");
 
+    /*
     const target = vec3.fromValues(0, 0, 0);
     const startPos = vec3.fromValues(0, 5, 20);
     const endPos   = vec3.fromValues(0, 0, 5);
@@ -123,6 +124,7 @@ export function resolveRouteFromURL(app, camera) {
         }
       }
     );
+    */
 
   /* ------------------------------
      Physics scene

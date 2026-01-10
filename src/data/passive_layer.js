@@ -1,14 +1,15 @@
 import { mat4 } from "https://esm.sh/gl-matrix";
+import { COLORS } from "./colors.js";
 
 const CONFIG = {
   STARS: { 
-    count: 20000, // Replicated high count from original snippet
+    count: 10000, // Replicated high count from original snippet
   }
 };
 
 const PALETTE = [
-  [1.0, 0.85, 0.7], [1.0, 0.4, 0.2], [0.5, 0.7, 1.0], 
-  [1.0, 1.0, 1.0], [1.0, 0.95, 0.4]
+  COLORS.BLUE_CORE, COLORS.CYAN_CORE, COLORS.UV_CORE, 
+
 ];
 
 function generateStars() {
@@ -21,9 +22,9 @@ function generateStars() {
     const phi = Math.acos(2.0 * Math.random() - 1.0);
     
     // Tiered radius logic from original snippet
-    let r = (Math.random() > 0.2) 
-      ? (3.0 + Math.random() * 10.0) 
-      : (10.0 + Math.random() * 20.0);
+    let r = (Math.random() > 0.5) 
+      ? (0.1 + Math.random() * 5.0) 
+      : (5.0 + Math.random() * 5.0);
 
     // Position with Z-offset
     pos[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
