@@ -127,7 +127,7 @@ const conicHelixConnector = new Path1D([
 
 export const geometryManifoldsDemoConfig = {
   name: "geometryManifoldsDemo",
-  brush: "circle",
+  brush: "square",
 
   config: {
     samplers: [
@@ -148,8 +148,8 @@ export const geometryManifoldsDemoConfig = {
 
     counts: [
       2_000,
-      2_000,
-      2_000,
+      1_000,
+      1_000,
       2_000,
       2_000,
       2_000,

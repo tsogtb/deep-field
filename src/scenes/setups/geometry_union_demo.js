@@ -36,7 +36,7 @@ const result = new CompositeShape("union", [cylinder, sphere1, sphere2, box]);
 
 export const geometryUnionDemoConfig = {
   name: "geometryUnionDemo",
-  brush: "circle",
+  brush: "square",
 
   config: {
     samplers: [
@@ -53,16 +53,16 @@ export const geometryUnionDemoConfig = {
     ],
 
     counts: [
-      3000,
+      6000,
       15000, // box
-      10000, // cylinder
-      5000,  // base
-      5000,  // top
+      15000, // cylinder
+      2000,  // base
+      2000,  // top
       1500,
       1500,
       10000, // sphere1
       10000, // sphere2
-      150000 // result (High density for the hero object)
+      100000 // result (High density for the hero object)
     ],
 
     sceneColors: [

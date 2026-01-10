@@ -42,14 +42,14 @@ export function resolveRouteFromURL(app, camera) {
     setTimeout(() => document.body.classList.add("geometry-faded"), 3500);
 
     // Camera along the connector line
-    const startPos = vec3.fromValues(0, 0.03, -30);
-    const endPos   = vec3.fromValues(0, 0.03, 25);
+    const startPos = vec3.fromValues(0, 0.05, -30);
+    const endPos   = vec3.fromValues(0, 0.05, 25.5);
 
     const startOrientation = quat.create();
     const endOrientation   = quat.create();
 
-    lookAtQuat(startOrientation, startPos, vec3.fromValues(0, 0.03, endPos[2]), [0, 1, 0]);
-    lookAtQuat(endOrientation, endPos, vec3.fromValues(0, 0.03, startPos[2]), [0, 1, 0]);
+    lookAtQuat(startOrientation, startPos, vec3.fromValues(0, 0.05, endPos[2]), [0, 1, 0]);
+    lookAtQuat(endOrientation, endPos, vec3.fromValues(0, 0.05, startPos[2]), [0, 1, 0]);
 
     camera.position = vec3.clone(startPos);
     camera.driver = new CameraLerp(
@@ -62,7 +62,7 @@ export function resolveRouteFromURL(app, camera) {
           const threshold = 0.98;
 
           if (t < threshold) {
-            lookAtQuat(cam.orientation, cam.position, vec3.fromValues(0, 0.01, 25), [0,1,0]);
+            lookAtQuat(cam.orientation, cam.position, vec3.fromValues(0, 0.05, 25.5), [0,1,0]);
           } else {
             const turnT = (t - threshold) / (1 - threshold);
             quat.slerp(cam.orientation, startOrientation, endOrientation, turnT);

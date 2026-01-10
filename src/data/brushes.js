@@ -11,8 +11,8 @@ import gizmo_vert from "../render/shaders/gizmo.vert.js";
 import gizmo_frag from "../render/shaders/gizmo.frag.js";
 import physics_vert from "../render/shaders/physics.vert.js";
 import physics_frag from "../render/shaders/physics.frag.js";
-import point_highlight_vert from "../render/shaders/point_highlight.vert.js";
-import point_highlight_frag from "../render/shaders/point_highlight.frag.js";
+import geometry_vert from "../render/shaders/geometry.vert.js";
+import geometry_frag from "../render/shaders/geometry.frag.js";
 
 /**
  * Blending modes
@@ -28,6 +28,30 @@ const BLEND = {
     func: { srcRGB: 'src alpha', srcAlpha: 1, dstRGB: 'one', dstAlpha: 1 },
     equation: { rgb: 'add', alpha: 'add' },
   },
+  geometry: {
+    enable: true,
+    func: {
+      srcRGB: 'src alpha',
+      dstRGB: 'one minus src alpha',
+      srcAlpha: 1,
+      dstAlpha: 1,
+    },
+    equation: 'add',
+  },
+  softGlow: {
+    enable: true,
+    func: {
+      srcRGB: 'src alpha',   // light contributes based on alpha
+      dstRGB: 'one',         // additive RGB
+      srcAlpha: 1,
+      dstAlpha: 'one minus src alpha',
+    },
+    equation: {
+      rgb: 'add',
+      alpha: 'add',
+    },
+  },
+  
 };
 
 /**
@@ -49,4 +73,4 @@ export const CIRCLE = { vert: point_vert, frag: circle_frag, blend: BLEND.glow, 
 export const SQUARE = { vert: point_vert, frag: square_frag, blend: BLEND.glow, depth: DEPTH.glow };
 export const STAR = { vert: point_vert, frag: star_frag, blend: BLEND.glow, depth: DEPTH.glow };
 export const PHYSICS = { vert: physics_vert, frag: physics_frag, blend: BLEND.glow, depth: DEPTH.glow };
-export const GEOMETRY = { vert: point_highlight_vert, frag: point_highlight_frag, blend: BLEND.glow, depth: DEPTH.glow };
+export const GEOMETRY = { vert: geometry_vert, frag: geometry_frag, blend: BLEND.geometry, depth: DEPTH.glow };

@@ -50,7 +50,7 @@ const result = new CompositeShape("difference", [
 
 export const geometryDifferenceDemoConfig = {
   name: "geometryDifferenceDemo",
-  brush: "circle",
+  brush: "square",
 
   config: {
     samplers: [
@@ -61,10 +61,10 @@ export const geometryDifferenceDemoConfig = {
     ],
 
     counts: [
-      5000,
+      10000,
       25000,   // shell (context)
-      35000,
-      200000,  // result (hero density)
+      25000,
+      100000,  // result (hero density)
     ],
 
     sceneColors: [

@@ -86,7 +86,7 @@ export class SceneController {
   /* --- Brush control --- */
 
   swapBrush() {
-    const brushes = ["basic", "circle", "square", "star", "physics"];
+    const brushes = ["basic", "circle", "square", "star", "physics", "geometry"];
     const idx = brushes.indexOf(this.currentBrush);
 
     this.currentBrush = brushes[(idx + 1) % brushes.length];

@@ -67,7 +67,7 @@ const result = new CompositeShape("intersection", [
 
 export const geometryIntersectionDemoConfig = {
   name: "geometryIntersectionDemo",
-  brush: "circle",
+  brush: "square",
 
   config: {
     samplers: [
@@ -83,7 +83,7 @@ export const geometryIntersectionDemoConfig = {
       20000, // Box Shell
       20000, // Cone Shell
       20000, // Ellipsoid Shell
-      150000 // Solid Hero
+      50000 // Solid Hero
     ],
 
     sceneColors: [

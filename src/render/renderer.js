@@ -1,6 +1,6 @@
 import background_vert from "./shaders/background.vert.js";
 import background_frag from "./shaders/background.frag.js";
-import { BASIC, CIRCLE, SQUARE, STAR, GIZMO, PHYSICS } from "../data/brushes.js";
+import { BASIC, CIRCLE, SQUARE, STAR, GIZMO, PHYSICS, GEOMETRY } from "../data/brushes.js";
 import { createGizmoGroup } from "./meshes/gizmo.js";
 
 export function createPointRenderer(regl) {
@@ -54,6 +54,7 @@ export function createPointRenderer(regl) {
     square: createPointCommand(SQUARE),
     star: createPointCommand(STAR),
     physics: createPointCommand(PHYSICS),
+    geometry: createPointCommand(GEOMETRY),
   };
 
   // Gizmo

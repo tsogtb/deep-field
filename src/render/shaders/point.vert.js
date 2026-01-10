@@ -5,8 +5,6 @@ attribute vec3 position, color;
 uniform mat4 projection, view, model;
 uniform float uTime; 
 
-uniform float uIsSnow;
-
 varying vec3 vColor;
 varying float vSizeFactor; 
 varying float vRotation; 
@@ -18,14 +16,10 @@ float hash(vec3 p) {
 void main() {
   float starId = hash(position);
 
-  float twinkle = 0.6 + 0.4 * sin(uTime * 3.0 + starId * 100.0);
+  float twinkle = 0.6 + 0.4 * sin(uTime * 1.0 + starId * 100.0);
   vColor = color * twinkle;
 
   vec4 worldPos = model * vec4(position, 1.0);
-
-  if (uIsSnow > 0.5) {
-    worldPos.y = mod(worldPos.y + 5.0, 10.0) - 5.0;
-  }
 
   vec4 mvPosition = view * worldPos;
   gl_Position = projection * mvPosition;
