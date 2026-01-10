@@ -358,7 +358,14 @@ Last modified: 2026-01-08
   <script>
     window.onload = () => {
       const canvas = document.getElementById("c");
-      canvas.focus();
+
+      // Only autofocus if NOT embedded
+      const isEmbedded = window.self !== window.top;
+
+      if (!isEmbedded) {
+        canvas.focus();
+      }
+
       window.addEventListener("click", () => canvas.focus());
     };
   </script>

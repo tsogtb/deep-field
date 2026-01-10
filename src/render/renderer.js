@@ -1,7 +1,7 @@
 import background_vert from "./shaders/background.vert.js";
 import background_frag from "./shaders/background.frag.js";
 import { BASIC, CIRCLE, SQUARE, STAR, GIZMO, PHYSICS } from "../data/brushes.js";
-import { createGizmoGroup } from "../render/meshes/gizmo.js";
+import { createGizmoGroup } from "./meshes/gizmo.js";
 
 export function createPointRenderer(regl) {
   // Global uniforms for time and viewport
