@@ -53,24 +53,24 @@ export const geometryUnionDemoConfig = {
     ],
 
     counts: [
-      3000,
+      7500,
       7500, // box
-      7500, // cylinder
+      2500, // cylinder
       1000,  // base
       1000,  // top
-      750,
-      750,
-      5000, // sphere1
-      5000, // sphere2
+      1500,
+      1500,
+      7500, // sphere1
+      7500, // sphere2
       50000 // result (High density for the hero object)
     ],
 
     sceneColors: [
-      COLORS.BLUE_CORE,
+      COLORS.BLUE_MIST,
       COLORS.BLUE_CORE, // box
-      COLORS.CYAN_MIST,  // cylinder
-      COLORS.CYAN_MIST,  // base
-      COLORS.CYAN_MIST,  // top
+      COLORS.CYAN_CORE,  // cylinder
+      COLORS.CYAN_CORE,  // base
+      COLORS.CYAN_CORE,  // top
       COLORS.CYAN_MIST,  // base
       COLORS.CYAN_MIST,  // top
       COLORS.BLUE_MIST,  // sphere1
