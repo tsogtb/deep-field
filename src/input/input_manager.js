@@ -63,6 +63,11 @@ export function setupInput(canvas, handlers = {}) {
   // --- Canvas focus ---
   canvas.setAttribute("tabindex", "0");
 
-  // Focus canvas on first pointer down
-  canvas.addEventListener("pointerdown", () => canvas.focus(), { once: true });
+  // Ensure canvas regains focus on user interaction
+  window.addEventListener("pointerdown", () => {
+    if (document.activeElement !== canvas) {
+      canvas.focus();
+    }
+  });
+
 }

@@ -99,7 +99,20 @@ const moveScratch = {
   level: false,
 };
 
+let firstFrame = true;
+
 regl.frame(({ time }) => {
+
+  if (firstFrame) {
+    const loader = document.getElementById("loader");
+    if (loader) {
+      loader.style.opacity = "0";
+      setTimeout(() => loader.remove(), 800);
+    }
+    firstFrame = false;
+  }
+  
+
   const dt = Math.min(time - lastFrameTime, 0.1);
   lastFrameTime = time;
 

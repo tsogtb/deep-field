@@ -40,12 +40,6 @@ Last modified: 2026-01-08
       width: 100vw;
       height: 100vh;
       outline: none;
-      animation: fadeIn 1.5s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
     }
 
     /* --- UI VISIBILITY CONTROL --- */
@@ -58,7 +52,6 @@ Last modified: 2026-01-08
       display: block;
     }
 
-    body.ui-ready .hint,
     body.ui-ready #mobile-controls {
       display: flex;
     }
@@ -153,7 +146,7 @@ Last modified: 2026-01-08
       left: 50%;
       transform: translateX(-50%);
 
-      display: flex;
+      display: none;
       gap: 12px;
 
       z-index: 50;
@@ -200,14 +193,45 @@ Last modified: 2026-01-08
     body.geometry-active .geometry-hint {
       opacity: 1;
     }
+    body.geometry-active .geometry-overlay {
+      display: flex;
+    }
+
 
     body.geometry-faded .geometry-hint {
       opacity: 0.48;
     }
+
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: #050505;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      transition: opacity 0.8s ease;
+      pointer-events: none;
+    }
+
   </style>
 </head>
 
 <body>
+    <!-- LOADER -->
+    <div id="loader">
+    <div
+      style="
+        color: #38BDF8;
+        font-family: monospace;
+        font-size: 10px;
+        letter-spacing: 2px;
+      "
+    >
+      LOADING…
+    </div>
+  </div>
+
   <!-- Geometry Interaction Hint -->
   <div id="geometry-hint" class="geometry-hint">
     <span>⟲ drag</span>
@@ -216,7 +240,7 @@ Last modified: 2026-01-08
   </div>
 
   <!-- Geometry Mode Selector -->
-  <div id="geometry-overlay" class="geometry-overlay" style="display: none;">
+  <div id="geometry-overlay" class="geometry-overlay">
     <button data-geom="geometry-manifolds">Manifolds</button>
     <button data-geom="geometry-union">Union</button>
     <button data-geom="geometry-difference">Difference</button>
@@ -292,7 +316,6 @@ Last modified: 2026-01-08
       border-radius: 4px;
       pointer-events: none;
       z-index: 1000;
-      display: none; /* hidden by default, toggleable */
     "
   ></div>
   
@@ -354,20 +377,5 @@ Last modified: 2026-01-08
   <!-- App Entry -->
   <script type="module" src="./src/main.js"></script>
 
-  <!-- Canvas Focus Management -->
-  <script>
-    window.onload = () => {
-      const canvas = document.getElementById("c");
-
-      // Only autofocus if NOT embedded
-      const isEmbedded = window.self !== window.top;
-
-      if (!isEmbedded) {
-        canvas.focus();
-      }
-
-      window.addEventListener("click", () => canvas.focus());
-    };
-  </script>
 </body>
 </html>
