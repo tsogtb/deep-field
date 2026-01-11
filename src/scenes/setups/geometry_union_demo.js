@@ -62,7 +62,7 @@ export const geometryUnionDemoConfig = {
       1500,
       7500, // sphere1
       7500, // sphere2
-      50000 // result (High density for the hero object)
+      75000 // result (High density for the hero object)
     ],
 
     sceneColors: [
@@ -73,9 +73,9 @@ export const geometryUnionDemoConfig = {
       COLORS.CYAN_CORE,  // top
       COLORS.CYAN_MIST,  // base
       COLORS.CYAN_MIST,  // top
-      COLORS.BLUE_MIST,  // sphere1
-      COLORS.BLUE_MIST,  // sphere2
-      COLORS.UV_CORE // result
+      COLORS.UV_CORE,  // sphere1
+      COLORS.UV_CORE,  // sphere2
+      COLORS.SILVER_CORE // result
     ]
   } 
 };

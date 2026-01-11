@@ -163,7 +163,7 @@ export const geometryManifoldsDemoConfig = {
     ],
 
     sceneColors: [
-      COLORS.BLUE_CORE,
+      COLORS.SILVER_CORE,
       COLORS.BLUE_CORE,
       COLORS.BLUE_CORE,
       COLORS.CYAN_CORE,     // triangle wireframe
