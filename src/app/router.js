@@ -149,8 +149,8 @@ export function resolveRouteFromURL(app, camera) {
       {
         lookAtTarget: target,
         orbitSpeed: 0.05,
-        tiltRange: [Math.PI * 0.45, Math.PI * 0.55],
-        tiltSpeed: -0.15,
+        tiltRange: [Math.PI * 0.45, Math.PI * 0.45],
+        tiltSpeed: 0,
         loop: true
       }
     );

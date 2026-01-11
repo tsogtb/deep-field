@@ -11,11 +11,12 @@ import { RotatedShape } from "../../../geometry/composites.js";
  * --------------------------------------------- */
 
 const HORIZON_RADIUS = 500.0;
-const HORIZON_COUNT = 20000;
+const HORIZON_COUNT = 10000;
 
 const horizon = new RotatedShape( new Circle2D(
   { x: 0, y: 0, z: 0 },
   HORIZON_RADIUS,
+  HORIZON_RADIUS-50,
 ), Math.PI / 2, 0, 0);
 
 
@@ -123,7 +124,6 @@ const gravity = gravityCentral(CONFIG.MASS);
 export const orbitSceneConfig = {
   name: "spaghettiSimulation",
   brush: "geometry",
-  cameraMode: "free",
 
   config: {
     samplers: [
