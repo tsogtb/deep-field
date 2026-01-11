@@ -9,7 +9,7 @@ const CONFIG = {
 
 const PALETTE = [
   COLORS.BLUE_CORE, COLORS.CYAN_CORE, COLORS.UV_CORE, 
-
+  COLORS.SILVER_CORE,
 ];
 
 function generateStars() {
