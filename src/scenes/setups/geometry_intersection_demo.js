@@ -8,14 +8,20 @@ import { BoxWireframe } from "../../../geometry/path1d.js";
  * HERO INTERSECTION GEOMETRY — Located at y: +6
  * --------------------------------------------------------- */
 
+const ellipsoidShell = new Ellipsoid3D( 
+  { x: 0, y: -10.0, z: 0, }, 
+  5, 7.5, 5,
+  4.99, 4.99, 4.99,
+)
+
 // --- Boxes (stacked) ---
 const bigBox = new Box3D(
-  { x: 0, y: -15, z: 0 },
+  { x: 0, y: -5.0, z: 0 },
   10.0, 5.0, 10.0
 );
 
 const bigBoxInner = new Box3D(
-  { x: 0, y: -15, z: 0 },
+  { x: 0, y: -5.0, z: 0 },
   9.99, 4.99, 9.99
 );
 
@@ -36,13 +42,13 @@ const smallBoxShell = new CompositeShape("difference", [smallBox, smallBoxInner]
 
 
 const tinyBox = new Box3D(
-  { x: 0, y: -5, z: 0 },
+  { x: 0, y: -15.0, z: 0 },
   2.5, 5.0, 2.5
 );
 
 
 const tinyBoxInner = new Box3D(
-  { x: 0, y: -5, z: 0 },
+  { x: 0, y: -15.0, z: 0 },
   2.49, 4.99, 2.49
 );
 
@@ -50,7 +56,7 @@ const tinyBoxShell = new CompositeShape("difference", [tinyBox, tinyBoxInner])
 
 
 const bigBoxWireframe = BoxWireframe(
-  { x: 0, y: -15, z: 0 },
+  { x: 0, y: -5.0, z: 0 },
   10.0, 5.0, 10.0
 );
 const smallBoxWireframe = BoxWireframe(
@@ -59,7 +65,7 @@ const smallBoxWireframe = BoxWireframe(
 );
 
 const tinyBoxWireframe = BoxWireframe(
-  { x: 0, y: -5, z: 0 },
+  { x: 0, y: -15.0, z: 0 },
   2.5, 5.0, 2.5
 );
 
@@ -68,15 +74,15 @@ const tinyBoxWireframe = BoxWireframe(
 
 // --- Cone (base contains box square, tip touches ceiling) ---
 const coneShell = new RotatedShape(new Cone3D(
-  { x: 0, y: -17.5, z: 0 }, // base sits at bottom of box
+  { x: 0, y: -2.5, z: 0 }, // base sits at bottom of box
   7.08,                // circumscribed square radius
   15.0,                 // exactly box height
   7.07,
-  14.8,
-), -Math.PI / 2, 0, 0);
+  14.9,
+), Math.PI / 2, 0, 0);
 
-const coneBase = new RotatedShape(new Circle2D({ x: 0, y: -17.5, z: 0 }, 7.08), Math.PI/2, 0, 0);
-const coneBaseRim = new RotatedShape(new Circle2D({ x: 0, y: -17.5, z: 0 }, 7.08, 7.07), Math.PI/2, 0, 0);
+const coneBase = new RotatedShape(new Circle2D({ x: 0, y: -2.5, z: 0 }, 7.08), Math.PI/2, 0, 0);
+const coneBaseRim = new RotatedShape(new Circle2D({ x: 0, y: -2.5, z: 0 }, 7.08, 7.07), Math.PI/2, 0, 0);
 
 
 // --- FINAL INTERSECTION ---
@@ -95,7 +101,7 @@ const cone = new RotatedShape(new Cone3D(
 const result = new CompositeShape("intersection", [
   new CompositeShape("union", [
     new Box3D(
-      { x: 0, y: 5, z: 0 },
+      { x: 0, y: 15.0, z: 0 },
       10.0, 5.0, 10.0
     ),
     new Box3D(
@@ -103,16 +109,21 @@ const result = new CompositeShape("intersection", [
       5.0, 5.0, 5.0
     ),
     new Box3D(
-      { x: 0, y: 15, z: 0 },
+      { x: 0, y: 5.0, z: 0 },
       2.5, 5.0, 2.5
     ),
   ]),
 
   new RotatedShape(new Cone3D(
-    { x: 0, y: 2.5, z: 0 }, // base sits at bottom of box
+    { x: 0, y: 17.5, z: 0 }, // base sits at bottom of box
     7.08,                // circumscribed square radius
     15.0,                 // exactly box height
-  ), -Math.PI / 2, 0, 0),
+  ), Math.PI / 2, 0, 0),
+
+  new Ellipsoid3D( 
+    { x: 0, y: 10.0, z: 0, }, 
+    5, 7.5, 5,
+  )
 ]);
 
 
@@ -126,6 +137,7 @@ export const geometryIntersectionDemoConfig = {
 
   config: {
     samplers: [
+      () => ellipsoidShell.sample(),
       () => bigBoxWireframe.sample(),
       () => smallBoxWireframe.sample(),
       () => tinyBoxWireframe.sample(),
@@ -139,6 +151,7 @@ export const geometryIntersectionDemoConfig = {
     ],
 
     counts: [
+      10000,
       2000,
       1000,
       500,
@@ -152,6 +165,7 @@ export const geometryIntersectionDemoConfig = {
     ],
 
     sceneColors: [
+      COLORS.UV_CORE,
       COLORS.BLUE_CORE,  
       COLORS.BLUE_CORE,  
       COLORS.BLUE_CORE,  
@@ -161,7 +175,7 @@ export const geometryIntersectionDemoConfig = {
       COLORS.BLUE_CORE,   
       COLORS.BLUE_CORE,    
       COLORS.BLUE_CORE,   
-      COLORS.UV_CORE,     
+      COLORS.SUNSET_ORANGE_CORE,     
     ]
   }
 };

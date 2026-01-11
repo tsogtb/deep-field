@@ -85,7 +85,7 @@ export function resolveRouteFromURL(app, camera) {
     let tilt = 0.35;
     if (scene === "geometry-intersection") {
       pos = vec3.fromValues(35, 45, 0);
-      tilt = 0.45;
+      tilt = 0.40;
     }
 
     camera.driver = new CameraLerp(
