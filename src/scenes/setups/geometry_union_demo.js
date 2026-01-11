@@ -31,8 +31,14 @@ const box = new Box3D({ x: 0, y: 5, z: 0 }, 4.0, 0.5, 25.0);
 const cylinder = new RotatedShape(new Cylinder3D({ x: 0, y: 5, z: 0 }, 2.5, 5), 0, Math.PI / 2, 0);
 const sphere1 = new Sphere3D({ x: 2.5, y: 5, z: 0 }, 2.5);
 const sphere2 = new Sphere3D({ x: -2.5, y: 5, z: 0 }, 2.5);
+const boxxWireframe = BoxWireframe(
+  { x: 0, y: 5, z: 0 },
+  4.0,
+  0.5,
+  25.0
+);
 
-const result = new CompositeShape("union", [cylinder, sphere1, sphere2, box]);
+const result = new CompositeShape("union", [cylinder, sphere1, sphere2, box,]);
 
 export const geometryUnionDemoConfig = {
   name: "geometryUnionDemo",
@@ -49,6 +55,7 @@ export const geometryUnionDemoConfig = {
       () => cylinderTopRim.sample(),
       () => sphere1Shell.sample(),    // Left Sphere
       () => sphere2Shell.sample(),    // Right Sphere
+      () => boxxWireframe.sample(),
       () => result.sample(),          // The Final Union
     ],
 
@@ -58,10 +65,11 @@ export const geometryUnionDemoConfig = {
       2500, // cylinder
       1000,  // base
       1000,  // top
-      1500,
-      1500,
+      2000,
+      2000,
       7500, // sphere1
       7500, // sphere2
+      2500,
       75000 // result (High density for the hero object)
     ],
 
@@ -71,11 +79,12 @@ export const geometryUnionDemoConfig = {
       COLORS.CYAN_CORE,  // cylinder
       COLORS.CYAN_CORE,  // base
       COLORS.CYAN_CORE,  // top
-      COLORS.CYAN_MIST,  // base
-      COLORS.CYAN_MIST,  // top
+      COLORS.SUNSET_ORANGE_CORE,  // base
+      COLORS.SUNSET_ORANGE_CORE,  // top
       COLORS.UV_CORE,  // sphere1
       COLORS.UV_CORE,  // sphere2
-      COLORS.SILVER_CORE // result
+      COLORS.SILVER_MIST, // result
+      COLORS.SILVER_CORE, // result
     ]
   } 
 };

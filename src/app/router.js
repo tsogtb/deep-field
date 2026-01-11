@@ -80,7 +80,13 @@ export function resolveRouteFromURL(app, camera) {
     setTimeout(() => document.body.classList.add("geometry-faded"), 3500);
 
     const target = vec3.fromValues(0, 0, 0);
-    const pos = vec3.fromValues(15, 35, 0);
+
+    let pos = vec3.fromValues(15, 35, 0);
+    let tilt = 0.35;
+    if (scene === "geometry-intersection") {
+      pos = vec3.fromValues(35, 45, 0);
+      tilt = 0.45;
+    }
 
     camera.driver = new CameraLerp(
       { position: pos, orientation: quat.create() },
@@ -89,7 +95,7 @@ export function resolveRouteFromURL(app, camera) {
       {
         lookAtTarget: target,
         orbitSpeed: 0.1,
-        tiltRange: [Math.PI * 0.35, Math.PI * 0.35],
+        tiltRange: [Math.PI * tilt, Math.PI * tilt],
         tiltSpeed: 0,
         loop: true
       }
@@ -133,8 +139,8 @@ export function resolveRouteFromURL(app, camera) {
     app.setMode("physics");
 
     const target = vec3.fromValues(0, 0, 0);
-    const startPos = vec3.fromValues(100, 60, 100);
-    const endPos   = vec3.fromValues(30, 20, 30);
+    const startPos = vec3.fromValues(250, 150, 250);
+    const endPos   = vec3.fromValues(20, 10, 20);
 
     camera.driver = new CameraLerp(
       { position: startPos, orientation: quat.create() },
@@ -143,11 +149,13 @@ export function resolveRouteFromURL(app, camera) {
       {
         lookAtTarget: target,
         orbitSpeed: 0.05,
-        tiltRange: [0, Math.PI],
-        tiltSpeed: 0.15,
+        tiltRange: [Math.PI * 0.45, Math.PI * 0.55],
+        tiltSpeed: -0.15,
         loop: true
       }
     );
+
+    setupStopCamera(camera);
 
   /* ------------------------------
      Default fallback

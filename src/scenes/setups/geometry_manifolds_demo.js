@@ -164,13 +164,13 @@ export const geometryManifoldsDemoConfig = {
 
     sceneColors: [
       COLORS.SILVER_CORE,
-      COLORS.BLUE_CORE,
-      COLORS.BLUE_CORE,
+      COLORS.SUNSET_ORANGE_CORE,
+      COLORS.SUNSET_ORANGE_CORE,
       COLORS.CYAN_CORE,     // triangle wireframe
       COLORS.CYAN_CORE,      // square wireframe
       COLORS.CYAN_CORE,      // hexagon wireframe
       COLORS.CYAN_CORE,      // circle wireframe
-      COLORS.BLUE_CORE,        // regular helix
+      COLORS.SUNSET_ORANGE_CORE,        // regular helix
       //COLORS.UV_MIST,        // quadratic Bézier
       COLORS.UV_CORE,     // triangle fill
       COLORS.UV_CORE,      // square fill
