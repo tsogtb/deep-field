@@ -7,6 +7,11 @@ const GEOMETRY_SCENES = {
   intersection: "geometryIntersectionDemo",
 };
 
+const BIOLOGY_SCENES = {
+  secondary: "proteinFoldingDemo",
+  tertiary: "proteinFoldingExperimentalDemo",
+}
+
 export class AppController {
   constructor({ sceneController, camera, passiveManager, ui }) {
     this.sceneController = sceneController;
@@ -14,7 +19,7 @@ export class AppController {
     this.passiveManager = passiveManager;
     this.ui = ui;
 
-    this.mode = "app"; // app | hero | geometry
+    this.mode = "app"; 
     this._prevSceneIndex = -1;
     this._prevOverlayVisible = null;
     this._prevPassiveVisible = null;
@@ -25,7 +30,7 @@ export class AppController {
   /* --------------------------------
      Switch app mode and load corresponding scene
   -------------------------------- */
-  setMode(mode, geometryMode = "none") {
+  setMode(mode, subMode = "none") {
     this.mode = mode;
 
     // Default: hide UI & gizmo for most special modes
@@ -35,20 +40,27 @@ export class AppController {
     };
 
     if (mode === "hero") {
-      this.sceneController.goToScene({ name: "blankScene", reason: "hero" });
+      this.sceneController.goToScene({ name: "starField", reason: "hero" });
       hideUIAndGizmo();
 
     } else if (mode === "geometry") {
       this.sceneController.goToScene({
-        name: GEOMETRY_SCENES[geometryMode] ?? "geometryUnionDemo",
+        name: GEOMETRY_SCENES[subMode] ?? "geometryUnionDemo",
         reason: "geometry",
       });
       hideUIAndGizmo();
 
     } else if (mode === "physics") {
-      this.sceneController.goToScene({ name: "spaghettiSimulation", reason: "geometry" });
+      this.sceneController.goToScene({ name: "orbitSceneDemo", reason: "geometry" });
       hideUIAndGizmo();
 
+    } else if (mode === "biology") {
+      this.sceneController.goToScene({ 
+        name: BIOLOGY_SCENES[subMode] ?? "proteinFoldingDemo", 
+        reason: "biology",
+      })
+      hideUIAndGizmo();
+      
     } else if (mode === "app") {
       this.sceneController.goToScene({ index: 0, reason: "startup" });
       this._showUI();
@@ -72,7 +84,7 @@ export class AppController {
     const { name: sceneName } = sceneInfo;
 
     // --- Passive elements visibility ---
-    const showPassive = this.mode === "hero";
+    const showPassive = this.mode === "biology";
     if (this._prevPassiveVisible !== showPassive) {
       this.passiveManager.setVisibility(showPassive);
       this._prevPassiveVisible = showPassive;

@@ -75,7 +75,7 @@ export function createPointRenderer(regl) {
 
       // Passive objects (always circle brush)
       passiveObjects.forEach((obj) => {
-        brushes.circle({
+        brushes.basic({
           projection: camera.projection,
           view: camera.view,
           model: obj.modelMatrix,

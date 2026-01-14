@@ -63,8 +63,13 @@ export class SceneController {
 
   _destroyPointBuffers() {
     for (const obj of this.pointData) {
-      obj.buffer?.destroy();
-      obj.colorBuffer?.destroy();
+      if (obj.buffer && typeof obj.buffer.destroy === 'function') {
+        obj.buffer.destroy();
+      }
+      // Check if it's a REGL buffer and not just a raw Float32Array
+      if (obj.colorBuffer && typeof obj.colorBuffer.destroy === 'function') {
+        obj.colorBuffer.destroy();
+      }
     }
   }
 
@@ -88,8 +93,9 @@ export class SceneController {
   swapBrush() {
     const brushes = ["basic", "circle", "square", "star", "physics", "geometry"];
     const idx = brushes.indexOf(this.currentBrush);
-
+    
     this.currentBrush = brushes[(idx + 1) % brushes.length];
+    console.log(`brush switched to ${this.currentBrush}`);
   }
 
   /* --- Debug / helpers --- */

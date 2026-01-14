@@ -6,13 +6,22 @@ import { lookAtQuat } from "../camera/camera.js";
    Helper: Stop any active camera driver on user interaction
 -------------------------------- */
 function setupStopCamera(camera) {
-  const stopCamera = () => {
+  const canvas = camera.canvas;
+
+  const stopCamera = (e) => {
+    if (e.target !== canvas) return;
+
     if (camera.driver instanceof CameraLerp) {
       camera.driver = null;
-      camera.controller?.setPositionAndOrientation?.(camera.position, camera.orientation);
+      camera.controller?.setPositionAndOrientation?.(
+        camera.position,
+        camera.orientation
+      );
     }
+
     window.removeEventListener("pointerdown", stopCamera);
   };
+
   window.addEventListener("pointerdown", stopCamera);
 }
 
@@ -157,9 +166,46 @@ export function resolveRouteFromURL(app, camera) {
 
     setupStopCamera(camera);
 
-  /* ------------------------------
-     Default fallback
-  ------------------------------ */
+  } else if(scene === "biology-secondary") {
+    document.body.classList.add("biology-active");
+    app.setMode("biology", "secondary")
+    const target = vec3.fromValues(0, 0, 0);
+    const startPos = vec3.fromValues(0, 0, 50);
+    const endPos   = vec3.fromValues(0, 0, 50);
+
+    const onPlayClicked = () => {
+      const from = camera.snapshot();
+      camera.driver = new CameraLerp(
+        from,
+        from,
+        0.0,
+        { lookAtTarget: target, orbitSpeed: 0.175, loop: true }
+      );
+      setupStopCamera(camera);
+      //window.removeEventListener("start-biology-dive", onPlayClicked);
+    };
+
+    window.addEventListener("start-biology-dive", onPlayClicked);
+  } else if(scene === "biology-tertiary") {
+    app.setMode("biology", "tertiary")
+    document.body.classList.add("biology-active");
+    const target = vec3.fromValues(0, 0, 0);
+    const startPos = vec3.fromValues(0, 0, 150);
+    const endPos   = vec3.fromValues(0, 0, 50);
+
+    const onPlayClicked = () => {
+      const from = camera.snapshot();
+      camera.driver = new CameraLerp(
+        from,
+        from,
+        0.0,
+        { lookAtTarget: target, orbitSpeed: 0.075, loop: true }
+      );
+      setupStopCamera(camera);
+      //window.removeEventListener("start-biology-dive", onPlayClicked);
+    };
+
+    window.addEventListener("start-biology-dive", onPlayClicked);  
   } else {
     app.setMode("app");
   }

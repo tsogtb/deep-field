@@ -1,10 +1,13 @@
 import { blankConfig } from "./setups/blank.js";
 import { christmasTreeConfig } from "./setups/christmas_tree.js";
-import { orbitSceneConfig } from "./setups/physics_demo.js";
+import { orbitSceneDemoConfig } from "./setups/physics_demo.js";
 import { geometryManifoldsDemoConfig } from "./setups/geometry_manifolds_demo.js";
 import { geometryUnionDemoConfig } from "./setups/geometry_union_demo.js";
 import { geometryDifferenceDemoConfig } from "./setups/geometry_difference_demo.js";
 import { geometryIntersectionDemoConfig } from "./setups/geometry_intersection_demo.js";
+import { proteinFoldingDemoConfig } from "./setups/biology_demo.js";
+import { proteinFoldingExperimentalDemoConfig } from "./setups/biology_demo_experimental.js";
+import { starsConfig } from "./setups/hero_scene.js";
 
 export const SCENES = [
   blankConfig,
@@ -12,8 +15,11 @@ export const SCENES = [
   geometryUnionDemoConfig,
   geometryDifferenceDemoConfig,
   geometryIntersectionDemoConfig,
-  orbitSceneConfig,
+  orbitSceneDemoConfig,
   christmasTreeConfig,
+  proteinFoldingDemoConfig,
+  proteinFoldingExperimentalDemoConfig,
+  starsConfig,
 ];
 
 export function getSceneConfig(index) {

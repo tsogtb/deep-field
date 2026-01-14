@@ -7,7 +7,7 @@ import { COLORS } from "../../data/colors.js";
 import { RotatedShape } from "../../../geometry/composites.js";
 
 /* ---------------------------------------------
- * Horizon (wide circular ring)
+ * Horizon 
  * --------------------------------------------- */
 
 const HORIZON_RADIUS = 500.0;
@@ -21,7 +21,7 @@ const horizon = new RotatedShape( new Circle2D(
 
 
 /* ---------------------------------------------
- * Particle config (unchanged)
+ * Particle config 
  * --------------------------------------------- */
 
 const TOTAL_COUNT = 13000;
@@ -118,11 +118,11 @@ const simState = {
 const gravity = gravityCentral(CONFIG.MASS);
 
 /* ---------------------------------------------
- * Scene config (GRID REMOVED, HORIZON ADDED)
+ * Scene config 
  * --------------------------------------------- */
 
-export const orbitSceneConfig = {
-  name: "spaghettiSimulation",
+export const orbitSceneDemoConfig = {
+  name: "orbitSceneDemo",
   brush: "geometry",
 
   config: {
@@ -169,7 +169,6 @@ export const orbitSceneConfig = {
       }
     }
 
-    // Horizon (static)
     if (pointData[SEGMENT_COUNT]) {
       mat4.identity(pointData[SEGMENT_COUNT].modelMatrix);
     }

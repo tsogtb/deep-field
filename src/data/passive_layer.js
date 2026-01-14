@@ -1,59 +1,74 @@
 import { mat4 } from "https://esm.sh/gl-matrix";
 import { COLORS } from "./colors.js";
+import { BoxWireframe, Path1D } from "../../geometry/path1d.js";
+import { Rectangle2D } from "../../geometry/shapes2d.js";
+import { RotatedShape } from "../../geometry/composites.js";
 
-const CONFIG = {
-  STARS: { 
-    count: 10000, // Replicated high count from original snippet
+function SquareWireframe(center, size) {
+  const h = size / 2;
+  const v = (x, y, z) => ({ x, y, z });
+
+  const p = {
+    A: v(center.x - h, center.y, center.z - h),
+    B: v(center.x + h, center.y, center.z - h),
+    C: v(center.x + h, center.y, center.z + h),
+    D: v(center.x - h, center.y, center.z + h),
+  };
+
+  const line = (start, end) => ({ start, end });
+
+  return new Path1D([
+    line(p.A, p.B),
+    line(p.B, p.C),
+    line(p.C, p.D),
+    line(p.D, p.A),
+  ]);
+}
+
+const FRAME_COUNT = 5000;
+
+const squareBottom = SquareWireframe({ x: 0, y: -15, z: 0 }, 30);
+const squareTop    = SquareWireframe({ x: 0, y:  15, z: 0 }, 30);
+
+function sampleFrame(path) {
+  const pos = new Float32Array(FRAME_COUNT * 3);
+  const col = new Float32Array(FRAME_COUNT * 3);
+
+  for (let i = 0; i < FRAME_COUNT; i++) {
+    const p = path.sample();
+    pos[i * 3 + 0] = p.x;
+    pos[i * 3 + 1] = p.y;
+    pos[i * 3 + 2] = p.z;
+
+    col[i * 3 + 0] = COLORS.SILVER_MIST[0];
+    col[i * 3 + 1] = COLORS.SILVER_MIST[1];
+    col[i * 3 + 2] = COLORS.SILVER_MIST[2];
   }
-};
 
-const PALETTE = [
-  COLORS.BLUE_CORE, COLORS.CYAN_CORE, COLORS.UV_CORE, 
-  COLORS.SILVER_CORE,
-];
-
-function generateStars() {
-  const count = CONFIG.STARS.count;
-  const pos = new Float32Array(count * 3);
-  const col = new Float32Array(count * 3);
-
-  for (let i = 0; i < count; i++) {
-    const theta = Math.random() * 2.0 * Math.PI;
-    const phi = Math.acos(2.0 * Math.random() - 1.0);
-    
-    // Tiered radius logic from original snippet
-    let r = (Math.random() > 0.5) 
-      ? (0.1 + Math.random() * 5.0) 
-      : (5.0 + Math.random() * 5.0);
-
-    // Position with Z-offset
-    pos[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
-    pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-    pos[i * 3 + 2] = r * Math.cos(phi);
-
-    // Color and Brightness
-    const baseColor = PALETTE[Math.floor(Math.random() * PALETTE.length)];
-    const brightness = 0.4 + Math.random() * 0.6;
-    
-    col[i * 3 + 0] = baseColor[0] * brightness;
-    col[i * 3 + 1] = baseColor[1] * brightness;
-    col[i * 3 + 2] = baseColor[2] * brightness;
-  }
   return { pos, col };
 }
 
+const bottomFrame = sampleFrame(squareBottom);
+const topFrame    = sampleFrame(squareTop);
+
+
+
+
 export function createPassiveLayer(regl) {
-  const stars = generateStars();
-
-  const pack = (id, data, count) => ({
-    id,
-    count,
-    buffer: regl.buffer(data.pos),
-    colorBuffer: regl.buffer(data.col),
-    modelMatrix: mat4.create()
-  });
-
   return [
-    pack('stars', stars, CONFIG.STARS.count)
+    {
+      id: "squareFrameBottom",
+      count: FRAME_COUNT,
+      buffer: regl.buffer(bottomFrame.pos),
+      colorBuffer: regl.buffer(bottomFrame.col),
+      modelMatrix: mat4.create(),
+    },
+    {
+      id: "squareFrameTop",
+      count: FRAME_COUNT,
+      buffer: regl.buffer(topFrame.pos),
+      colorBuffer: regl.buffer(topFrame.col),
+      modelMatrix: mat4.create(),
+    }
   ];
 }

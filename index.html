@@ -2,7 +2,7 @@
 (c) 2026 Tsogt
 Licensed under the MIT License.
 Created: 2025-12-20
-Last modified: 2026-01-08
+Last modified: 2026-01-14
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -18,331 +18,250 @@ Last modified: 2026-01-08
   <style>
     :root {
       color-scheme: dark;
+      --accent: #38BDF8;
+      --bg-panel: rgba(10, 10, 10, 0.9);
+      --border: rgba(255, 255, 255, 0.15);
     }
 
     /* --- GLOBAL RESET --- */
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
       overflow: hidden;
       background-color: #050505;
       touch-action: none;
       user-select: none;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     }
 
-    canvas {
-      display: block;
-      width: 100vw;
-      height: 100vh;
-      outline: none;
-    }
+    canvas { display: block; width: 100vw; height: 100vh; outline: none; }
 
-    /* --- UI VISIBILITY CONTROL --- */
-    /* Hide UI until AppController signals readiness */
-    .app-ui {
-      display: none;
-    }
+    /* --- UI VISIBILITY --- */
+    .app-ui { display: none; }
+    body.ui-ready .app-ui { display: block; }
+    body.ui-ready #mobile-controls { display: flex; }
 
-    body.ui-ready .app-ui {
-      display: block;
-    }
-
-    body.ui-ready #mobile-controls {
-      display: flex;
-    }
-
-    /* --- MOBILE CONTROLS --- */
-    #mobile-controls {
-      position: fixed;
-      bottom: 60px;
-      right: 20px;
-      z-index: 2000;
-      gap: 10px;
-    }
-
-    @media (pointer: fine) {
-      #mobile-controls {
-        display: none !important;
-      }
-    }
-
-    #mobile-controls button {
-      background-color: rgba(255, 255, 255, 0.3);
-      color: rgba(255, 255, 255, 0.8);
-      border: none;
-      border-radius: 2px;
-      padding: 6px 10px;
-
-      font-family: monospace;
-      font-size: 11px;
-      cursor: pointer;
-    }
-
-    /* --- SETTINGS PANEL --- */
-    #settings-panel {
-      position: fixed;
-      top: 0;
-      right: -300px;
-
-      width: 260px;
-      height: 100%;
-      padding: 20px;
-
-      background: rgba(10, 10, 10, 0.9);
-      backdrop-filter: blur(10px);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
-
-      color: white;
-      font-family: monospace;
-
-      z-index: 2500;
-      transition: right 0.3s ease;
-    }
-
-    #settings-panel.open {
-      right: 0;
-    }
-
-    .control-group {
-      margin-top: 20px;
-    }
-
-    label {
-      font-size: 10px;
-      letter-spacing: 1px;
-      color: #888;
-    }
-
-    #camera-overlay {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      font-family: monospace;
-      color: white;
-    }
-
-    #camera-overlay .overlay-box {
-      background: rgba(15,15,20,0.85);
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #444;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
-      min-width: 200px;
-    }
-
-
-
-
-    /* --- GEOMETRY UI --- */
-    .geometry-overlay {
+    /* --- COMMON OVERLAY SYSTEM --- */
+    .overlay-container {
       position: fixed;
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
-
       display: none;
       gap: 12px;
-
       z-index: 50;
+      transition: opacity 0.3s ease;
     }
 
-    .geometry-overlay button {
+    .overlay-container button {
       background: rgba(20, 20, 20, 0.85);
       color: white;
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      border: 1px solid var(--border);
       padding: 8px 14px;
-
-      font-size: 13px;
-      letter-spacing: 0.04em;
-      cursor: pointer;
-    }
-
-    .geometry-overlay button.active {
-      background: rgba(80, 120, 255, 0.9);
-    }
-
-    .geometry-hint {
-      position: fixed;
-      bottom: 64px;
-      left: 50%;
-      transform: translateX(-50%);
-
-      display: flex;
-      gap: 18px;
-
+      font-size: 12px;
       font-family: monospace;
-      font-size: 13px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      text-shadow: 0 0 8px rgba(255, 255, 255, 0.05);
-
-      color: rgba(255, 255, 255, 0.35);
-      pointer-events: none;
-
-      z-index: 900;
-      opacity: 0;
-      transition: opacity 0.6s ease;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
     }
 
-    body.geometry-active .geometry-hint {
-      opacity: 1;
+    .overlay-container button:hover { background: rgba(45, 45, 50, 0.9); }
+    .overlay-container button.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
     }
-    body.geometry-active .geometry-overlay {
+
+    /* Scene-Specific Visibility */
+    body.geometry-active #geometry-overlay { display: flex; }
+    body.biology-active #biology-overlay { 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+    }
+
+    /* --- BIOLOGY SELECTIVE VISIBILITY --- */
+    .secondary-only, .tertiary-only, .bio-seq-row {
+      display: none; /* Hide all by default */
+      gap: 8px;
+    }
+
+    /* Show Secondary specific rows when Secondary button is active */
+    #biology-overlay:has(button[data-bio="biology-secondary"].active) .secondary-only,
+    #biology-overlay:has(button[data-bio="biology-secondary"].active) .bio-seq-row {
       display: flex;
     }
 
-
-    body.geometry-faded .geometry-hint {
-      opacity: 0.48;
+    /* Show Tertiary specific rows when Tertiary button is active */
+    #biology-overlay:has(button[data-bio="biology-tertiary"].active) .tertiary-only {
+      display: flex;
     }
+
+    .bio-init-row button {
+      font-size: 10px;
+      padding: 5px 10px;
+      background: rgba(30, 30, 35, 0.95);
+      opacity: 0.7;
+      text-transform: uppercase;
+    }
+    .bio-init-row button:hover { opacity: 1; }
+
+    /* --- SETTINGS PANEL --- */
+    #settings-panel {
+      position: fixed; top: 0; right: -300px;
+      width: 240px; height: 100%;
+      padding: 24px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-left: 1px solid var(--border);
+      color: white;
+      font-family: monospace;
+      z-index: 2500;
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #settings-panel.open { right: 0; }
+
+    .control-group { margin-top: 24px; }
+    .control-group label { font-size: 10px; letter-spacing: 1px; color: #888; text-transform: uppercase; }
+    .control-group select {
+      width: 100%; background: #111; color: white; border: 1px solid #333;
+      padding: 6px; margin-top: 8px; font-family: monospace;
+    }
+
+    /* --- HINTS & DEBUG --- */
+    .geometry-hint {
+      position: fixed; bottom: 70px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; gap: 18px;
+      font-family: monospace; font-size: 11px;
+      text-transform: uppercase; color: rgba(255, 255, 255, 0.3);
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    body.geometry-active .geometry-hint { opacity: 1; }
 
     #loader {
-      position: fixed;
-      inset: 0;
-      background: #050505;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.8s ease;
-      pointer-events: none;
+      position: fixed; inset: 0; background: #050505;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.8s ease;
     }
 
+    #camera-overlay {
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(0, 0, 0, 0.5); padding: 12px;
+      font-family: monospace; font-size: 11px; border-radius: 4px;
+      pointer-events: none; z-index: 1000; border: 1px solid var(--border);
+    }
+
+    #btn-start-sim {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 125px; /* Fixed width prevents UI jumping */
+      height: 34px;
+      gap: 8px;
+      background: rgba(20, 20, 20, 0.85);
+      border: 1px solid var(--border);
+      color: white;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 11px;
+      transition: all 0.2s ease;
+      font-weight: bold;
+    }
+
+    #btn-start-sim.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+    }
+
+    #btn-start-sim span {
+      opacity: 0.4;
+      font-size: 9px;
+      font-weight: normal;
+    }
+    
+    
   </style>
 </head>
 
 <body>
-    <!-- LOADER -->
-    <div id="loader">
-    <div
-      style="
-        color: #38BDF8;
-        font-family: monospace;
-        font-size: 10px;
-        letter-spacing: 2px;
-      "
-    >
+  <div id="loader">
+    <div style="color: var(--accent); font-family: monospace; font-size: 10px; letter-spacing: 3px;">
       LOADING…
     </div>
   </div>
 
-  <!-- Geometry Interaction Hint -->
-  <div id="geometry-hint" class="geometry-hint">
-    <span>⟲ drag</span>
-    <span>W/S</span>
-    <span>A/D</span>
+  <div id="start-overlay" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: monospace; text-align: center; pointer-events: none; display: none; z-index: 4000;">
+    <h1 style="letter-spacing: 5px; margin-bottom: 10px;">DEEPFIELD JS</h1>
+    <p style="opacity: 0.6; font-size: 12px;">Under construction...<br>Press [N] to continue.</p>
   </div>
 
-  <!-- Geometry Mode Selector -->
-  <div id="geometry-overlay" class="geometry-overlay">
+
+  <div id="geometry-hint" class="geometry-hint">
+    <span>⟲ drag</span><span>W / S</span><span>A / D</span>
+  </div>
+
+  <div id="geometry-overlay" class="overlay-container">
     <button data-geom="geometry-manifolds">Manifolds</button>
     <button data-geom="geometry-union">Union</button>
     <button data-geom="geometry-difference">Difference</button>
     <button data-geom="geometry-intersection">Intersection</button>
   </div>
 
-  <!-- Start Overlay -->
-  <div
-    id="start-overlay"
-    style="
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-family: monospace;
-      text-align: center;
-      pointer-events: none;
-      display: none;
-      z-index: 4000;
-    "
-  >
-    <h1 style="letter-spacing: 5px; margin-bottom: 10px;">
-      DEEPFIELD JS
-    </h1>
-    <p style="opacity: 0.6; font-size: 12px;">
-      Under construction...<br>Press [N] to continue.
-    </p>
+  <div id="biology-overlay" class="overlay-container">
+
+    <div class="bio-init-row secondary-only">
+      <button data-bio-init="randomTree">⟲ Tree</button>
+      <button data-bio-init="uniformSphere">⟲ Sphere</button>
+      <button data-bio-init="uniformTriangle">⟲ Triangle</button>
+    </div>
+  
+    <div class="bio-init-row tertiary-only">
+      <button data-bio-init="helix"><span>&#8910;</span> Helix</button>
+      <button data-bio-init="sheet"><span>&#9783;</span> Sheet</button>
+      <button data-bio-init="random"><span>&#8635;</span> Random</button>
+    </div>
+  
+    <div class="bio-seq-row">
+      <button data-bio-seq="alt1">●○●○</button>
+      <button data-bio-seq="alt2">●●○○</button>
+      <button data-bio-seq="alt4">●●●●</button>
+      <button data-bio-seq="rand40">40% H</button>
+      <button data-bio-seq="rand50">50% H</button>
+      <button data-bio-seq="rand60">60% H</button>
+    </div>
+  
+    <div class="bio-mode-row" style="display: flex; gap: 8px; align-items: center;">
+      <button data-bio="biology-secondary">Modular Folding</button>
+      <button id="btn-start-sim" style="min-width: 80px; font-weight: bold; border-color: var(--accent); color: var(--accent);">▶ PLAY</button>
+      <button data-bio="biology-tertiary">Global Folding</button>
+    </div>
   </div>
 
-  <!-- Main Canvas -->
   <canvas id="c"></canvas>
 
-
-  <!-- Mobile Controls -->
-  <div id="mobile-controls" class="app-ui">
-    <button id="btn-home">Re-center</button>
+  <div id="mobile-controls" class="app-ui" style="position: fixed; bottom: 60px; right: 20px; z-index: 2000; display: none; gap: 10px;">
+    <button id="btn-home" style="background: rgba(255,255,255,0.2); border: none; padding: 8px; color: white; font-family: monospace;">Center</button>
   </div>
 
-  <!-- Settings Toggle -->
-  <button
-    id="settings-toggle"
-    class="app-ui"
-    style="
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 3000;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 8px 12px;
-      cursor: pointer;
-      font-family: monospace;
-    "
-  >
-    SETTINGS [P]
+  <button id="settings-toggle" class="app-ui" style="position: fixed; top: 20px; right: 20px; z-index: 3000; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 10px 14px; cursor: pointer; font-family: monospace;">
+    ENGINE [P]
   </button>
 
-  <!-- Settings Panel -->
-  <!-- Camera Debug Overlay -->
-  <div
-    id="camera-overlay"
-    class="app-ui"
-    style="
-      position: fixed;
-      top: 10px;
-      left: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      color: #ffffff;
-      padding: 10px;
-      font-family: monospace;
-      border-radius: 4px;
-      pointer-events: none;
-      z-index: 1000;
-    "
-  ></div>
+  <div id="camera-overlay" class="app-ui"></div>
   
   <div id="settings-panel" class="app-ui">
-    <h3
-      style="
-        letter-spacing: 2px;
-        border-bottom: 1px solid #333;
-        padding-bottom: 10px;
-      "
-    >
-      ENGINE CFG
-    </h3>
+    <div style="letter-spacing: 2px; border-bottom: 1px solid #333; padding-bottom: 10px; font-size: 14px;">CONFIGURATION</div>
 
     <div class="control-group">
-      <label>ACTIVE BRUSH</label>
-      <select
-        id="ui-brush-select"
-        style="
-          width: 100%;
-          background: #222;
-          color: white;
-          border: 1px solid #444;
-          margin-top: 5px;
-          padding: 5px;
-        "
-      >
+      <label>Active Brush</label>
+      <select id="ui-brush-select">
         <option value="star">Star (Point)</option>
         <option value="circle">Circle</option>
         <option value="square">Square</option>
@@ -351,31 +270,22 @@ Last modified: 2026-01-08
     </div>
 
     <div class="control-group">
-      <label>POST EFFECTS</label>
-      <div style="margin-top: 10px; font-size: 11px;">
-        <input type="checkbox" id="ui-bloom" />
-        <label for="ui-bloom">Bloom (Glow)</label><br />
-        <input type="checkbox" id="ui-trails" />
-        <label for="ui-trails">Motion Trails</label>
+      <label>Post Effects</label>
+      <div style="margin-top: 10px; font-size: 11px; display: flex; flex-direction: column; gap: 8px;">
+        <label style="color: white; text-transform: none;"><input type="checkbox" id="ui-bloom" /> Bloom Glow</label>
+        <label style="color: white; text-transform: none;"><input type="checkbox" id="ui-trails" /> Motion Trails</label>
       </div>
     </div>
 
     <div class="control-group">
-      <label>DEBUG</label>
-      <div style="margin-top: 10px; font-size: 11px;">
-        <input type="checkbox" id="ui-gizmo" />
-        <label for="ui-gizmo">Show Gizmo</label><br />
-        <input type="checkbox" id="ui-camera" />
-        <label for="ui-camera">Camera Overlay</label>
+      <label>Debug</label>
+      <div style="margin-top: 10px; font-size: 11px; display: flex; flex-direction: column; gap: 8px;">
+        <label style="color: white; text-transform: none;"><input type="checkbox" id="ui-gizmo" /> Show Gizmo</label>
+        <label style="color: white; text-transform: none;"><input type="checkbox" id="ui-camera" /> Camera Stats</label>
       </div>
     </div>
-    
   </div>
 
-  
-
-  <!-- App Entry -->
   <script type="module" src="./src/main.js"></script>
-
 </body>
 </html>
