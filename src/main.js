@@ -30,13 +30,7 @@ import { resolveRouteFromURL } from "./app/router.js";
 
 
 // --- Canvas & REGL setup ---
-
-
 const { canvas, regl } = setupCanvasAndREGL();
-requestAnimationFrame(() => {
-  regl.poll();
-});
-
 const render = createPointRenderer(regl);
 
 // --- Camera setup ---

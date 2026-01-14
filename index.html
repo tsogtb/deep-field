@@ -15,7 +15,247 @@ Last modified: 2026-01-14
   <meta name="theme-color" content="#050505" />
   <title>Deepfield JS</title>
 
-  <link rel="stylesheet" href="style.css">
+  <style>
+
+    :root {
+      color-scheme: dark;
+      --accent: #38BDF8;
+      --bg-panel: rgba(10, 10, 10, 0.9);
+      --border: rgba(255, 255, 255, 0.15);
+    }
+
+    /* --- GLOBAL RESET --- */
+    html, body {
+      margin: 0; padding: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background-color: #050505;
+      touch-action: none;
+      user-select: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    canvas { display: block; width: 100vw; height: 100vh; outline: none; }
+
+    /* --- UI VISIBILITY --- */
+    .app-ui { display: none; }
+    body.ui-ready .app-ui { display: block; }
+    body.ui-ready #mobile-controls { display: flex; }
+
+    /* --- COMMON OVERLAY SYSTEM --- */
+    .overlay-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 12px;
+      z-index: 50;
+      transition: opacity 0.3s ease;
+    }
+
+    .overlay-container button {
+      background: rgba(20, 20, 20, 0.85);
+      color: white;
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      font-size: 12px;
+      font-family: monospace;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s ease;
+    }
+
+    .overlay-container button:hover { background: rgba(45, 45, 50, 0.9); }
+    .overlay-container button.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+    }
+
+    /* Scene-Specific Visibility */
+    body.geometry-active #geometry-overlay { display: flex; }
+    body.biology-active #biology-overlay { 
+      max-width: 95vw;
+      width: max-content;
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+    }
+
+    /* Show hints in any active interactive scene */
+    body.geometry-active .camera-hint,
+    body.biology-active .camera-hint,
+    body.physics-active .camera-hint {
+      opacity: 1;
+    }
+
+    /* --- PLAY BUTTON PULSE --- */
+    @keyframes pulse-glow {
+      0% { box-shadow: 0 0 5px rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); }
+      50% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.6); border-color: rgba(56, 189, 248, 1); }
+      100% { box-shadow: 0 0 5px rgba(56, 189, 248, 0.2); border-color: rgba(56, 189, 248, 0.5); }
+    }
+
+    #btn-start-sim:not(.active) {
+      animation: pulse-glow 2s infinite ease-in-out;
+    }
+
+    /* --- BIOLOGY SELECTIVE VISIBILITY --- */
+    .secondary-only, .tertiary-only, .bio-seq-row {
+      display: none; /* Hide all by default */
+      gap: 8px;
+    }
+
+    /* Show Secondary specific rows when Secondary button is active */
+    #biology-overlay:has(button[data-bio="biology-secondary"].active) .secondary-only,
+    #biology-overlay:has(button[data-bio="biology-secondary"].active) .bio-seq-row {
+      display: flex;
+    }
+
+    /* Show Tertiary specific rows when Tertiary button is active */
+    #biology-overlay:has(button[data-bio="biology-tertiary"].active) .tertiary-only {
+      display: flex;
+    }
+
+    .bio-init-row button {
+      font-size: 10px;
+      padding: 5px 10px;
+      background: rgba(30, 30, 35, 0.95);
+      opacity: 0.7;
+      text-transform: uppercase;
+    }
+    .bio-init-row button:hover { opacity: 1; }
+
+    /* --- SETTINGS PANEL --- */
+    #settings-panel {
+      position: fixed; top: 0; right: -300px;
+      width: 240px; height: 100%;
+      padding: 24px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border-left: 1px solid var(--border);
+      color: white;
+      font-family: monospace;
+      z-index: 2500;
+      transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #settings-panel.open { right: 0; }
+
+    .control-group { margin-top: 24px; }
+    .control-group label { font-size: 10px; letter-spacing: 1px; color: #888; text-transform: uppercase; }
+    .control-group select {
+      width: 100%; background: #111; color: white; border: 1px solid #333;
+      padding: 6px; margin-top: 8px; font-family: monospace;
+    }
+
+    #loader {
+      position: fixed; inset: 0; background: #050505;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; transition: opacity 0.8s ease;
+    }
+
+    #camera-overlay {
+      position: fixed; top: 20px; left: 20px;
+      background: rgba(0, 0, 0, 0.5); padding: 12px;
+      font-family: monospace; font-size: 11px; border-radius: 4px;
+      pointer-events: none; z-index: 1000; border: 1px solid var(--border);
+    }
+
+    #btn-start-sim {
+      display: inline-flex;
+      align-items: center;      /* Vertical alignment */
+      justify-content: center;   /* Horizontal alignment */
+      min-width: 125px;
+      height: 34px;
+      gap: 5px;                 /* Consistent spacing between icon, text, and hint */
+      background: rgba(20, 20, 20, 0.85);
+      border: 1px solid var(--border);
+      color: white;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 11px;
+      line-height: 1;            /* Crucial for icon alignment */
+      transition: all 0.2s ease;
+      font-weight: bold;
+    }
+
+    #btn-start-sim.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+    }
+
+    #btn-start-sim span {
+      opacity: 0.4;
+      font-size: 9px;
+      font-weight: normal;
+    }
+
+    .bio-mode-row button {
+      white-space: nowrap;      /* Prevents text from wrapping to a second line */
+      min-width: 140px;         /* Gives enough base width for the longer labels */
+      flex-shrink: 0;           /* Prevents the buttons from being squashed in small iframes */
+      padding: 8px 16px;        /* Consistent horizontal padding */
+    }
+
+    .bio-seq-row button, 
+    .bio-init-row button {
+      white-space: nowrap;
+      font-size: 10px;          /* Matching your monospace aesthetic */
+    }
+
+    @media (max-width: 400px) {
+      .bio-mode-row button {
+        font-size: 9px;
+        min-width: 110px;
+        padding: 6px 10px;
+      }
+    }
+    /* --- GLOBAL CAMERA HINTS --- */
+    /* Hide by default */
+    .camera-hint {
+      position: fixed;
+      top: 25px;
+      left: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.25);
+      pointer-events: none;
+      z-index: 1000;
+      transition: opacity 0.8s ease;
+      
+      /* Start hidden for Hero Mode */
+      opacity: 0; 
+    }
+
+    .camera-hint .hint-accent {
+      color: var(--accent);
+      opacity: 0.9;
+      /* Optional: a very slight glow to make it feel 'powered' */
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+    }
+
+    /* Specific state styling */
+    .camera-hint span { opacity: 0.6; }
+    .camera-hint kbd {
+      color: var(--accent);
+      opacity: 0.7;
+      font-family: monospace;
+      text-transform: uppercase;
+      margin-right: 4px;
+    }
+        
+  </style>
 </head>
 
 <body>

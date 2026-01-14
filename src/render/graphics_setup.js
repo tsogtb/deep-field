@@ -25,7 +25,6 @@ export function setupCanvasAndREGL(canvasId = "c") {
     canvas.height = window.innerHeight * dpr;
     canvas.style.width = `${window.innerWidth}px`;
     canvas.style.height = `${window.innerHeight}px`;
-    regl.poll();
   };
 
   window.addEventListener("resize", resize);
