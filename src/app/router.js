@@ -145,6 +145,7 @@ export function resolveRouteFromURL(app, camera) {
      Physics scene
   ------------------------------ */
   } else if (scene === "physics") {
+    document.body.classList.add("physics-active");
     app.setMode("physics");
 
     const target = vec3.fromValues(0, 0, 0);

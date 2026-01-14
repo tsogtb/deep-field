@@ -33,6 +33,22 @@ export function setupInput(canvas, handlers = {}) {
   canvas.addEventListener("mousedown", (e) => {
     e.preventDefault();
     InputState.mouse.isPressed = true;
+  
+    // --- UI Transition ---
+    const standby = document.getElementById('hint-standby');
+    const active = document.getElementById('hint-active');
+    const parent = document.getElementById('global-camera-hint');
+  
+    // Check if standby exists and hasn't been hidden yet
+    if (standby && standby.style.display !== 'none') {
+      standby.style.display = 'none';
+      if (active) active.style.display = 'flex';
+      
+      // Fade the whole HUD to a "ghost" state (0.15 opacity) after 4 seconds
+      setTimeout(() => {
+        if (parent) parent.style.opacity = '0.15';
+      }, 4000);
+    }
   });
 
   window.addEventListener("mouseup", () => {

@@ -1,5 +1,5 @@
 export const DefaultCameraConfig = {
-  position: [0, 0, 55],
+  position: [0, 5, 55],
   target: [0, 0, 0],
   up: [0, 1, 0],
 

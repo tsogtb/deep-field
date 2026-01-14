@@ -58,21 +58,24 @@ export function setupUI(sceneController) {
       document.body.classList.remove("biology-active");
     }
   }
-
+  
   function updatePlayButton() {
     if (!startBtn) return;
-    const hint = '<span style="opacity:0.4; font-size:9px;">[SPACE]</span>';
     
-    // Toggle icon and text based on the global clock
+    const hint = `<span class="btn-hint">[SPACE]</span>`;
+    
+    // Wrap icons in a class for precise positioning
+    const playIcon = `<span class="btn-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>`;
+    const pauseIcon = `<span class="btn-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg></span>`;
+  
     if (simulationClock.running) {
-      startBtn.innerHTML = `&#10074;&#10074; PAUSE ${hint}`;
-      startBtn.classList.add("active"); // Optional: highlight button while running
+      startBtn.innerHTML = `${pauseIcon} <span>PAUSE</span> ${hint}`;
+      startBtn.classList.add("active");
     } else {
-      startBtn.innerHTML = `&#9654; PLAY ${hint}`;
+      startBtn.innerHTML = `${playIcon} <span>PLAY</span> ${hint}`;
       startBtn.classList.remove("active");
     }
   }
-  
 
   if (startBtn) {
     startBtn.addEventListener("click", () => {
