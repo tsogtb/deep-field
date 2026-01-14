@@ -28,6 +28,7 @@ import { setupScreenshot } from "./utils/screenshot.js";
 import { AppController } from "./app/app_controller.js";
 import { resolveRouteFromURL } from "./app/router.js";
 
+
 // --- Canvas & REGL setup ---
 const { canvas, regl } = setupCanvasAndREGL();
 const render = createPointRenderer(regl);
@@ -101,7 +102,26 @@ const moveScratch = {
 
 let firstFrame = true;
 
+let SIM_ACTIVE = true;
+
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "PAUSE_SIM") {
+    SIM_ACTIVE = false;
+  }
+  if (e.data?.type === "RESUME_SIM") {
+    SIM_ACTIVE = true;
+  }
+});
+
 regl.frame(({ time }) => {
+
+  if (!SIM_ACTIVE) {
+    InputState.mouse.movementX = 0;
+    InputState.mouse.movementY = 0;
+  
+    lastFrameTime = time; // prevent dt explosion on resume
+    return;
+  }
 
   if (firstFrame) {
     const loader = document.getElementById("loader");
