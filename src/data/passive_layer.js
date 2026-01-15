@@ -40,9 +40,9 @@ function sampleFrame(path) {
     pos[i * 3 + 1] = p.y;
     pos[i * 3 + 2] = p.z;
 
-    col[i * 3 + 0] = COLORS.SILVER_SHADOW[0];
-    col[i * 3 + 1] = COLORS.SILVER_SHADOW[1];
-    col[i * 3 + 2] = COLORS.SILVER_SHADOW[2];
+    col[i * 3 + 0] = COLORS.SILVER_MIST[0];
+    col[i * 3 + 1] = COLORS.SILVER_MIST[1];
+    col[i * 3 + 2] = COLORS.SILVER_MIST[2];
   }
 
   return { pos, col };
