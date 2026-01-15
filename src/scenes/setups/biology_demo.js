@@ -98,15 +98,15 @@ for (let i = 0; i < TOTAL_COUNT; i++) {
 
   if (isHydrophobic) {
     // Hydrophobic = red/orange
-    colors[i*3 + 0] = 1.0;
-    colors[i*3 + 1] = 0.3;
-    colors[i*3 + 2] = 0.2;
+    colors[i*3 + 0] = COLORS.SUNSET_ORANGE_CORE[0];
+    colors[i*3 + 1] = COLORS.SUNSET_ORANGE_CORE[1];
+    colors[i*3 + 2] = COLORS.SUNSET_ORANGE_CORE[2];
     
   } else {
     // Polar = blue/cyan
-    colors[i*3 + 0] = 0.2;
-    colors[i*3 + 1] = 0.6;
-    colors[i*3 + 2] = 1.0;
+    colors[i*3 + 0] = COLORS.UV_CORE[0];
+    colors[i*3 + 1] = COLORS.UV_CORE[1];
+    colors[i*3 + 2] = COLORS.UV_CORE[2];
     
   }
 }
@@ -165,12 +165,20 @@ const BiologyInitializers = {
     simState.t = 0;
   },
 
-  uniformSphere: () => {
-    const sphere = new Sphere3D({ x: 0, y: 0, z: 0 }, 40);
+  uniformTorus: () => {
+    const R = 9; // major radius
+    const r = 3;  // minor radius
     const pos = [];
+  
     for (let i = 0; i < TOTAL_COUNT; i++) {
-      const p = sphere.sample();
-      pos.push([p.x, p.y, p.z]);
+      const t = (i / TOTAL_COUNT) * 2 * Math.PI * 9; // 3 loops
+      const u = (i / TOTAL_COUNT) * 2 * Math.PI;     // rotation around minor radius
+  
+      const x = (R + r * Math.cos(u)) * Math.cos(t);
+      const y = (R + r * Math.cos(u)) * Math.sin(t);
+      const z = r * Math.sin(u);
+  
+      pos.push([x, y, z]);
     }
     
     simState.position = toFloat32(pos);
@@ -178,16 +186,33 @@ const BiologyInitializers = {
     simState.t = 0;
   },
 
-  uniformTriangle: () => {
+  uniformHelix: () => {
+    const radius = 10;        // helix radius
+    const turns = 30;         // number of full 360° turns
+    const height = 30; // approximate helix height
+  
     const pos = [];
+  
+    // Angle increment per residue
+    const dTheta = (2 * Math.PI * turns) / TOTAL_COUNT;
+    const dz = height / TOTAL_COUNT;
+  
     for (let i = 0; i < TOTAL_COUNT; i++) {
-      const p = triangleWireframe.sample();
-      pos.push([p.x, p.y, p.z]);
+      const theta = i * dTheta;
+      const x = radius * Math.cos(theta);
+      const y = radius * Math.sin(theta);
+      const z = i * dz;
+  
+      pos.push([x, y, z]);
     }
+  
     simState.position = toFloat32(pos);
     simState.velocity.fill(0);
     simState.t = 0;
   },
+  
+  
+  
 };
 
 
@@ -339,14 +364,15 @@ export const proteinFoldingDemoConfig = {
 
       // Update color buffer immediately
       const isH = val > 0.5;
-      colors[i * 3 + 0] = isH ? 1.0 : 0.2; // R
-      colors[i * 3 + 1] = isH ? 0.3 : 0.6; // G
-      colors[i * 3 + 2] = isH ? 0.2 : 1.0; // B
+      colors[i * 3 + 0] = isH ? COLORS.SUNSET_ORANGE_CORE[0] : COLORS.UV_CORE[0]; // R
+      colors[i * 3 + 1] = isH ? COLORS.SUNSET_ORANGE_CORE[1] : COLORS.UV_CORE[1]; // G
+      colors[i * 3 + 2] = isH ? COLORS.SUNSET_ORANGE_CORE[2] : COLORS.UV_CORE[2]; // B
     }
   },
 
-  reinitialize(mode) {
+  reinitialize(mode, currentSequence) {
     BiologyInitializers[mode]?.();
+    this.updateSequence(currentSequence)
   },
 
   name: "proteinFoldingDemo",

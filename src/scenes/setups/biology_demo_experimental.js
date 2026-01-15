@@ -8,17 +8,17 @@ import { COLORS } from "../../data/colors.js";
 /* ---------------------------------------------
  * Constants & Config
  * --------------------------------------------- */
-const TOTAL_COUNT = 509;
-const BOND_LENGTH = 0.3;
-const INTERACTION_RADIUS = 1.5;
+const TOTAL_COUNT = 1000;
+const BOND_LENGTH = 0.5;
+const INTERACTION_RADIUS = 1.55;
 
 const CONFIG = {
-  DT: 0.016,
-  BOND_STRENGTH: 25.0,
-  BENDING_STRENGTH: 3.1,
-  VISCOSITY: 0.35,       
+  DT: 0.008,
+  BOND_STRENGTH: 1005.0,
+  BENDING_STRENGTH: 0.1,
+  VISCOSITY: 10.5,       
   OPTIMAL_DIST: 0.55,    
-  FORCE_STRENGTH: 2.2,  
+  FORCE_STRENGTH: 222.2,  
   REPULSION_K: 8.0,
   SOLVENT_PRESSURE: 0.0
 };
@@ -82,13 +82,6 @@ const Initializers = {
     }
     return pos;
   },
-  helix: (count, len) => {
-    return Array.from({length: count}, (_, i) => [
-      Math.cos(i * 0.2) * 2,
-      i * (len * 0.5),
-      Math.sin(i * 0.2) * 2
-    ]);
-  }
 };
 
 const initialPos = Initializers.randomChain(TOTAL_COUNT, BOND_LENGTH);
@@ -192,22 +185,48 @@ function centerOfMass(state) {
 }
 
 const BiologyInitializers = {
-  helix: () => {
-    const pos = Initializers.helix(TOTAL_COUNT, BOND_LENGTH);
-    simState.position.set(toFloat32(pos));
+  circle: () => {
+    const pos = [];
+    const radius = 3;
+    
+    // How many times the ring waves up and down
+    const waveCount = 4; 
+    // How far it moves out of the plane (keep it subtle)
+    const waveAmplitude = 1.5; 
+
+    for (let i = 0; i < TOTAL_COUNT; i++) {
+      const theta = (i / TOTAL_COUNT) * 2 * Math.PI;
+      
+      const x = radius * Math.cos(theta);
+      const y = radius * Math.sin(theta);
+      
+      // The wave logic: trace Z based on theta
+      const z = Math.sin(theta * waveCount) * waveAmplitude;
+  
+      pos.push([x, y, z]);
+    }
+  
+    simState.position = toFloat32(pos);
     simState.velocity.fill(0);
     simState.t = 0;
   },
-  sheet: () => {
-    // You can define a 'sheet' layout in Initializers or use randomChain for now
-    const pos = Initializers.randomChain(TOTAL_COUNT, BOND_LENGTH);
-    simState.position.set(toFloat32(pos));
+  trefoil: () => {
+    const pos = [];
+    const scale = 4.0;
+    for (let i = 0; i < TOTAL_COUNT; i++) {
+      const t = (i / TOTAL_COUNT) * Math.PI * 2;
+      const x = Math.sin(t) + 2 * Math.sin(2 * t);
+      const y = Math.cos(t) - 2 * Math.cos(2 * t);
+      const z = -Math.sin(3 * t);
+      pos.push([x * scale, y * scale, z * scale]);
+    }
+    simState.position = toFloat32(pos);
     simState.velocity.fill(0);
     simState.t = 0;
   },
   random: () => {
     const pos = Initializers.randomChain(TOTAL_COUNT, BOND_LENGTH);
-    simState.position.set(toFloat32(pos));
+    simState.position = toFloat32(pos);
     simState.velocity.fill(0);
     simState.t = 0;
   }
@@ -219,7 +238,7 @@ const BiologyInitializers = {
  * --------------------------------------------- */
 
 export const proteinFoldingExperimentalDemoConfig = {
-
+  
   reinitialize(mode) {
     BiologyInitializers[mode]?.();
   },
@@ -229,7 +248,7 @@ export const proteinFoldingExperimentalDemoConfig = {
   config: {
     samplers: [() => ( { x: 0, y: 0, z: 0 } )],
     counts: [TOTAL_COUNT],
-    sceneColors: [COLORS.UV_CORE],
+    sceneColors: [COLORS.BLUE_CORE],
   },
 
   animate: (pointData, time, mat4) => {

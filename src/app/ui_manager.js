@@ -167,7 +167,7 @@ export function setupUI(sceneController) {
       if (initBtn) {
         const mode = initBtn.dataset.bioInit;
         //if (scene?.name !== BIOLOGY_SCENES["biology-secondary"]) return;
-        sceneController.getCurrentScene()?.reinitialize?.(mode);
+        sceneController.getCurrentScene()?.reinitialize?.(mode, activeSequence);
         if (simulationClock.running) {
           simulationClock.stop(); 
           updatePlayButton();

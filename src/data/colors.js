@@ -49,6 +49,7 @@ export const COLORS = {
   // --- Pearlescent Silver (Liquid Chrome) ---
   SILVER_CORE:    [0.95, 0.98, 1.00], // Brilliant white-silver
   SILVER_MIST:    [0.30, 0.35, 0.45], // Cool slate metallic shadow
+  SILVER_SHADOW:  [0.05, 0.06, 0.08],
 
   // --- Ultraviolet Luxe (High-End Nightlife) ---
   UV_CORE:        [0.50, 0.40, 1.00], // Sharp blacklight blue
