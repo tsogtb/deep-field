@@ -6,35 +6,35 @@ import { BoxWireframe } from "../../../geometry/path1d.js";
 
 
 // --- SKELETON COMPONENTS (Located at y: -10) ---
-const sphere1Shell = new Sphere3D({ x: 2.5, y: -5, z: 0 }, 2.5, 2.48);
-const sphere2Shell = new Sphere3D({ x: -2.5, y: -5, z: 0 }, 2.5, 2.48);
+const sphere1Shell = new Sphere3D({ x: 2.5, y: -5, z: 0 }, 2.5, 2.49);
+const sphere2Shell = new Sphere3D({ x: -2.5, y: -5, z: 0 }, 2.5, 2.49);
 
-const cylinderLateral = new RotatedShape(new Cylinder3D({ x: 0, y: -5, z: 0 }, 2.5, 5, 2.48), 0, Math.PI / 2, 0);
+const cylinderLateral = new RotatedShape(new Cylinder3D({ x: 0, y: -5, z: 0 }, 2.5, 5, 2.49), 0, Math.PI / 2, 0);
 const cylinderBase = new RotatedShape(new Circle2D({ x: -2.5, y: -5, z: 0 }, 2.5), 0, -Math.PI / 2, 0);
 const cylinderTop = new RotatedShape(new Circle2D({ x: 2.5, y: -5, z: 0 }, 2.5), 0, -Math.PI / 2, 0);
 const cylinderBaseRim = new RotatedShape(new Circle2D({ x: -2.5, y: -5, z: 0 }, 2.5, 2.49), 0, -Math.PI / 2, 0);
 const cylinderTopRim = new RotatedShape(new Circle2D({ x: 2.5, y: -5, z: 0 }, 2.5, 2.49), 0, -Math.PI / 2, 0);
 
-const boxBase = new Box3D({ x: 0, y: -5, z: 0 }, 4.0, 0.5, 25.0);
-const boxBaseInner = new Box3D({ x: 0, y: -5, z: 0 }, 3.98, 0.48, 24.98);
+const boxBase = new Box3D({ x: 0, y: -5, z: 0 }, 4.0, 0.3, 25.0);
+const boxBaseInner = new Box3D({ x: 0, y: -5, z: 0 }, 3.99, 0.29, 24.99);
 const boxShell = new CompositeShape('difference', [boxBase, boxBaseInner]);
 
 const boxWireframe = BoxWireframe(
   { x: 0, y: -5, z: 0 },
   4.0,
-  0.5,
+  0.3,
   25.0
 );
 
 // --- SOLID COMPONENTS FOR UNION (Located at y: 10) ---
-const box = new Box3D({ x: 0, y: 5, z: 0 }, 4.0, 0.5, 25.0);
+const box = new Box3D({ x: 0, y: 5, z: 0 }, 4.0, 0.3, 25.0);
 const cylinder = new RotatedShape(new Cylinder3D({ x: 0, y: 5, z: 0 }, 2.5, 5), 0, Math.PI / 2, 0);
 const sphere1 = new Sphere3D({ x: 2.5, y: 5, z: 0 }, 2.5);
 const sphere2 = new Sphere3D({ x: -2.5, y: 5, z: 0 }, 2.5);
 const boxxWireframe = BoxWireframe(
   { x: 0, y: 5, z: 0 },
   4.0,
-  0.5,
+  0.3,
   25.0
 );
 
@@ -55,36 +55,36 @@ export const geometryUnionDemoConfig = {
       () => cylinderTopRim.sample(),
       () => sphere1Shell.sample(),    // Left Sphere
       () => sphere2Shell.sample(),    // Right Sphere
-      () => boxxWireframe.sample(),
+      //() => boxxWireframe.sample(),
       () => result.sample(),          // The Final Union
     ],
 
     counts: [
-      7500,
-      7500, // box
-      2500, // cylinder
+      3500,
+      10500, // box
+      3500, // cylinder
       1000,  // base
       1000,  // top
-      2000,
-      2000,
-      7500, // sphere1
-      7500, // sphere2
-      2500,
-      75000 // result (High density for the hero object)
+      650,
+      650,
+      3500, // sphere1
+      3500, // sphere2
+      //7500,
+      100000 // result (High density for the hero object)
     ],
 
     sceneColors: [
-      COLORS.BLUE_MIST,
-      COLORS.BLUE_CORE, // box
-      COLORS.CYAN_CORE,  // cylinder
-      COLORS.CYAN_CORE,  // base
-      COLORS.CYAN_CORE,  // top
-      COLORS.SUNSET_ORANGE_CORE,  // base
-      COLORS.SUNSET_ORANGE_CORE,  // top
-      COLORS.UV_CORE,  // sphere1
-      COLORS.UV_CORE,  // sphere2
+      COLORS.SILVER_MIST,
+      COLORS.SILVER_MIST, // box
+      COLORS.SILVER_MIST,  // cylinder
+      COLORS.SILVER_MIST,  // base
+      COLORS.SILVER_MIST,  // top
+      COLORS.SILVER_MIST,  // base
+      COLORS.SILVER_MIST,  // top
+      COLORS.SILVER_MIST,  // sphere1
+      COLORS.SILVER_MIST,  // sphere2
+      //COLORS.SILVER_SHADOW, // result
       COLORS.SILVER_MIST, // result
-      COLORS.SILVER_CORE, // result
     ]
   } 
 };

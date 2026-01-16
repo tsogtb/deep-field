@@ -2,7 +2,7 @@
 (c) 2026 Tsogt
 Licensed under the MIT License.
 Created: 2025-12-20
-Last modified: 2026-01-14
+Last modified: 2026-01-16
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -254,7 +254,12 @@ Last modified: 2026-01-14
       text-transform: uppercase;
       margin-right: 4px;
     }
-        
+    #btn-passive-orbit.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
   </style>
 </head>
 
@@ -273,7 +278,7 @@ Last modified: 2026-01-14
 
   <div id="global-camera-hint" class="camera-hint">
     <div id="hint-standby">
-      SYSTEM READY • <span class="hint-accent">CLICK</span> TO ENGAGE
+      <span class="hint-accent">CLICK</span> TO ENGAGE
     </div>
     
     <div id="hint-active" style="display: none; flex-direction: column; gap: 4px;">
@@ -284,7 +289,7 @@ Last modified: 2026-01-14
   </div>
 
   <div id="geometry-overlay" class="overlay-container">
-    <button data-geom="geometry-manifolds">Manifolds</button>
+    <!-- <button data-geom="geometry-manifolds">Manifolds</button> -->
     <button data-geom="geometry-union">Union</button>
     <button data-geom="geometry-difference">Difference</button>
     <button data-geom="geometry-intersection">Intersection</button>
@@ -317,6 +322,7 @@ Last modified: 2026-01-14
       <button data-bio="biology-secondary">Modular Folding</button>
       <button id="btn-start-sim" style="min-width: 80px; font-weight: bold; border-color: var(--accent); color: var(--accent);">▶ PLAY</button>
       <button data-bio="biology-tertiary">Global Folding</button>
+      <button id="btn-passive-orbit">◌ ORBIT</button>
     </div>
   </div>
 

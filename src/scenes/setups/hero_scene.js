@@ -4,8 +4,8 @@ import { COLORS } from "../../data/colors.js";
 const STAR_COUNT = 10000;
 
 const PALETTE = [
-  COLORS.BLUE_CORE, COLORS.CYAN_CORE, COLORS.UV_CORE, 
-  COLORS.SILVER_CORE,
+  COLORS.BLUE_MIST, COLORS.UV_CORE, 
+  COLORS.SILVER_MIST,
 ];
 
 const starColors = new Float32Array(STAR_COUNT * 3);
@@ -33,7 +33,7 @@ export const starsConfig = {
         
         
         const r = (Math.random() > 0.5) 
-          ? (0.1 + Math.random() * 5.0) 
+          ? (0.5 + Math.random() * 5.0) 
           : (5.0 + Math.random() * 5.0);
         
         return {
@@ -54,7 +54,7 @@ export const starsConfig = {
       if (pointData[0]) {
         pointData[0].colorBuffer = starColors;
         const m = pointData[0].modelMatrix;
-        const rotationSpeed = 0.02;
+        const rotationSpeed = 0.01;
 
         mat4.identity(m);
 

@@ -233,12 +233,14 @@ export const geometryDifferenceDemoConfig = {
       () => rimYYPos.sample(),
       () => rimXXNeg.sample(),
       () => rimXXPos.sample(),
+      /*
       () => rimZNeg.sample(),
       () => rimZPos.sample(),
       () => rimYNeg.sample(),
       () => rimYPos.sample(),
       () => rimXNeg.sample(),
       () => rimXPos.sample(),
+       */
       () => boxxWireframe.sample(),
       () => boxWireframe.sample(),
       () => boxShell.sample(), // Base volume reference
@@ -253,37 +255,41 @@ export const geometryDifferenceDemoConfig = {
       250,
       250,
       250,
+      /*
       1000,
       1000,
       1000,
       1000,
       1000,
       1000,
+      */
       1500,
-      7500,
+      2500,
       12500,   // shell (context)
-      12500,
-      75000,  // result (hero density)
+      7500,
+      100000,  // result (hero density)
     ],
 
     sceneColors: [
-      COLORS.UV_MIST, 
-      COLORS.UV_MIST,
-      COLORS.UV_MIST, 
-      COLORS.UV_MIST,
-      COLORS.UV_MIST,
-      COLORS.UV_MIST, 
+      COLORS.SILVER_SHADOW, 
+      COLORS.SILVER_SHADOW,
+      COLORS.SILVER_SHADOW, 
+      COLORS.SILVER_SHADOW,
+      COLORS.SILVER_SHADOW,
+      COLORS.SILVER_SHADOW, 
+      /*
       COLORS.SUNSET_ORANGE_CORE, 
       COLORS.SUNSET_ORANGE_CORE,
       COLORS.SUNSET_ORANGE_CORE, 
       COLORS.SUNSET_ORANGE_CORE,
       COLORS.SUNSET_ORANGE_CORE,
       COLORS.SUNSET_ORANGE_CORE, 
-      COLORS.UV_MIST, 
-      COLORS.BLUE_MIST,  
-      COLORS.BLUE_CORE,     
-      COLORS.CYAN_CORE,       
-      COLORS.UV_CORE // result
+      */
+      COLORS.SILVER_SHADOW, 
+      COLORS.SILVER_MIST,  
+      COLORS.SILVER_MIST,     
+      COLORS.SILVER_MIST,       
+      COLORS.SILVER_MIST // result
     ]
   }
 };
