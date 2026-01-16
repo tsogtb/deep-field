@@ -206,13 +206,17 @@ Last modified: 2026-01-16
     }
 
     .bio-mode-row button {
-      white-space: nowrap;      /* Prevents text from wrapping to a second line */
-      min-width: 140px;         /* Gives enough base width for the longer labels */
+      white-space: nowrap; 
+      font-size: 10px;     /* Prevents text from wrapping to a second line */
+      /*min-width: 140px;*/         /* Gives enough base width for the longer labels */
       flex-shrink: 0;           /* Prevents the buttons from being squashed in small iframes */
-      padding: 8px 16px;        /* Consistent horizontal padding */
+      /*padding: 8px 16px;        /* Consistent horizontal padding */
     }
 
-    .bio-seq-row button, 
+    .bio-seq-row button  {
+      white-space: nowrap;
+      font-size: 8px;          /* Matching your monospace aesthetic */
+    }
     .bio-init-row button {
       white-space: nowrap;
       font-size: 10px;          /* Matching your monospace aesthetic */
@@ -286,9 +290,10 @@ Last modified: 2026-01-16
     </div>
     
     <div id="hint-active" style="display: none; flex-direction: column; gap: 4px;">
-      <div><kbd>DRAG</kbd> ORBIT</div>
-      <div><kbd>W / S</kbd> RANGE</div>
-      <div><kbd>A / D</kbd> LATITUDE</div>
+      <div><kbd>↺ DRAG</kbd> ORBIT</div>
+      <div><kbd>↕ W / S</kbd> ZOOM</div>
+      <div><kbd>↔ A / D</kbd> AXIS</div>
+      <div><kbd>⊙ CLICK</kbd> STILL</div>
     </div>
   </div>
 
@@ -317,15 +322,15 @@ Last modified: 2026-01-16
       <button data-bio-seq="alt1">●○●○</button>
       <button data-bio-seq="alt2">●●○○</button>
       <button data-bio-seq="alt4">●●●●</button>
-      <button data-bio-seq="rand40">40% H</button>
-      <button data-bio-seq="rand50">50% H</button>
-      <button data-bio-seq="rand60">60% H</button>
+      <button data-bio-seq="rand40">0.40</button>
+      <button data-bio-seq="rand50">0.50</button>
+      <button data-bio-seq="rand60">0.60</button>
     </div>
   
     <div class="bio-mode-row" style="display: flex; gap: 8px; align-items: center;">
-      <button data-bio="biology-secondary">Modular Folding</button>
+      <button data-bio="biology-secondary">MODULAR</button>
       <button id="btn-start-sim" style="min-width: 80px; font-weight: bold; border-color: var(--accent); color: var(--accent);">▶ PLAY</button>
-      <button data-bio="biology-tertiary">Global Folding</button>
+      <button data-bio="biology-tertiary">GLOBAL</button>
     </div>
   </div>
 

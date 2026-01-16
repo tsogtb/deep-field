@@ -46,8 +46,8 @@ export function setupInput(canvas, handlers = {}) {
       
       // Fade the whole HUD to a "ghost" state (0.15 opacity) after 4 seconds
       setTimeout(() => {
-        if (parent) parent.style.opacity = '0.15';
-      }, 4000);
+        if (parent) parent.style.opacity = '0.30';
+      }, 5000);
     }
   });
 
