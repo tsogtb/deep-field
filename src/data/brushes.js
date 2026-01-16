@@ -73,4 +73,4 @@ export const CIRCLE = { vert: point_vert, frag: circle_frag, blend: BLEND.glow, 
 export const SQUARE = { vert: point_vert, frag: square_frag, blend: BLEND.glow, depth: DEPTH.glow };
 export const STAR = { vert: point_vert, frag: star_frag, blend: BLEND.glow, depth: DEPTH.glow };
 export const PHYSICS = { vert: physics_vert, frag: physics_frag, blend: BLEND.glow, depth: DEPTH.glow };
-export const GEOMETRY = { vert: geometry_vert, frag: geometry_frag, blend: BLEND.geometry, depth: DEPTH.glow };
+export const GEOMETRY = { vert: geometry_vert, frag: geometry_frag, blend: BLEND.glow, depth: DEPTH.glow };

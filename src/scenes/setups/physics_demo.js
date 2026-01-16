@@ -11,7 +11,7 @@ import { RotatedShape } from "../../../geometry/composites.js";
  * --------------------------------------------- */
 
 const HORIZON_RADIUS = 500.0;
-const HORIZON_COUNT = 10000;
+const HORIZON_COUNT = 4000;
 
 const horizon = new RotatedShape( new Circle2D(
   { x: 0, y: 0, z: 0 },
@@ -19,24 +19,37 @@ const horizon = new RotatedShape( new Circle2D(
   HORIZON_RADIUS-50,
 ), Math.PI / 2, 0, 0);
 
+/* ---------------------------------------------
+ * Central star
+ * --------------------------------------------- */
+
+const STAR_RADIUS = 0.2;
+const STAR_COUNT = 800;
+
+const star = new Sphere3D(
+  { x: 0, y: 0, z: 0 },
+  STAR_RADIUS
+);
+
+
 
 /* ---------------------------------------------
  * Particle config 
  * --------------------------------------------- */
 
-const TOTAL_COUNT = 13000;
-const SEGMENT_COUNT = 4;
+const TOTAL_COUNT = 30000;
+const SEGMENT_COUNT = 3;
 const COUNT_PER_SEGMENT = TOTAL_COUNT / SEGMENT_COUNT;
 
 const CONFIG = {
-  MASS: 700.0,
+  MASS: 3000.0,
   DT: 0.016,
   COLORS: [
     COLORS.BLUE_CORE,
-    //COLORS.SUNSET_ORANGE_CORE,
-    COLORS.UV_CORE,
-    COLORS.CYAN_CORE,
     COLORS.SILVER_CORE,
+    COLORS.UV_CORE,
+    //COLORS.CYAN_CORE,
+    COLORS.SUNSET_ORANGE_MIST,
   ]
 };
 
@@ -45,7 +58,7 @@ const CONFIG = {
  * --------------------------------------------- */
 
 const regions = Array.from({ length: SEGMENT_COUNT }, () =>
-  new Sphere3D({ x: 6.5, y: 0.0, z: 0.0 }, 0.0001)
+  new Sphere3D({ x: 10.0, y: 0.0, z: 0.0 }, 0.10)
 );
 
 const initialPos = [];
@@ -53,7 +66,11 @@ const initialVel = [];
 
 const cx = 0, cy = 0, cz = 0;
 
-const ORBITAL_SCALE = [1.0, 1.25, 1.0, -0.9];
+const ORBITAL_SCALE = [
+  1.0,    // stable circular
+  0.75,   // decaying / inward spiral
+ -1.15    // retrograde / counter-rotation
+];
 
 const segmentNormals = Array.from({ length: SEGMENT_COUNT }, () => {
   const u = Math.random() * 2 - 1;
@@ -92,7 +109,7 @@ for (let r = 0; r < SEGMENT_COUNT; r++) {
 
     const vCirc = Math.sqrt(CONFIG.MASS / dist);
     const vr = (Math.random() * 2 - 1) * 0.05;
-    const noise = 0.15;
+    const noise = 0.08;
     const scale = ORBITAL_SCALE[r];
 
     initialVel.push([
@@ -128,17 +145,19 @@ export const orbitSceneDemoConfig = {
   config: {
     samplers: [
       ...Array(SEGMENT_COUNT).fill(() => ({ x: 0, y: 0, z: 0 })),
+      () => star.sample(),
       () => horizon.sample()
     ],
 
     counts: [
       ...Array(SEGMENT_COUNT).fill(COUNT_PER_SEGMENT),
+      STAR_COUNT,
       HORIZON_COUNT
     ],
 
     sceneColors: [
       ...CONFIG.COLORS,
-      COLORS.NEUTRAL_HAZE, // horizon
+      COLORS.SILVER_MIST, // horizon
     ]
   },
 
