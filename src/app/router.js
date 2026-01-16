@@ -112,7 +112,9 @@ export function resolveRouteFromURL(app, camera) {
     );
 
     setupStopCamera(camera);
-
+  } else if (scene === "jelly") {
+    app.setMode("jelly");
+  
   /* ------------------------------
      Hero mode
   ------------------------------ */

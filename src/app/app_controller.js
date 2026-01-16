@@ -49,6 +49,9 @@ export class AppController {
         reason: "geometry",
       });
       hideUIAndGizmo();
+    } else if (mode === "jelly") {
+      this.sceneController.goToScene({ name: "physicsJellyConfig", reason: "lab" });
+      //hideUIAndGizmo();
 
     } else if (mode === "physics") {
       this.sceneController.goToScene({ name: "orbitSceneDemo", reason: "geometry" });
@@ -65,6 +68,7 @@ export class AppController {
       this.sceneController.goToScene({ index: 0, reason: "startup" });
       this._showUI();
     }
+    
   }
 
   /* --------------------------------

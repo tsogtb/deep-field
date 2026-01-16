@@ -8,6 +8,7 @@ import { geometryIntersectionDemoConfig } from "./setups/geometry_intersection_d
 import { proteinFoldingDemoConfig } from "./setups/biology_demo.js";
 import { proteinFoldingExperimentalDemoConfig } from "./setups/biology_demo_experimental.js";
 import { starsConfig } from "./setups/hero_scene.js";
+import { physicsJellyConfig } from "./setups/jelly.js";
 
 export const SCENES = [
   blankConfig,
@@ -20,6 +21,7 @@ export const SCENES = [
   proteinFoldingDemoConfig,
   proteinFoldingExperimentalDemoConfig,
   starsConfig,
+  physicsJellyConfig,
 ];
 
 export function getSceneConfig(index) {
