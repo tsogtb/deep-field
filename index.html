@@ -47,7 +47,9 @@ Last modified: 2026-01-16
       position: fixed;
       bottom: 24px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateZ(0); /*prevent half pixel shifts*/
+      backface-visibility: hidden;
+      perspective: 1000px;
       display: none;
       gap: 12px;
       z-index: 50;
@@ -65,6 +67,15 @@ Last modified: 2026-01-16
       backdrop-filter: blur(4px);
       cursor: pointer;
       transition: all 0.2s ease;
+      /* FIX 2: Improve text rendering on GPU layers */ 
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      
+      /* FIX 3: Force a clean layer immediately so it doesn't "snap" into focus on hover */
+      transform: translateZ(0);
+      
+      /* FIX 4: Optimization for backdrop-filter */
+      isolation: isolate;
     }
 
     .overlay-container button:hover { background: rgba(45, 45, 50, 0.9); }
