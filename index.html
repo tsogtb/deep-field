@@ -46,13 +46,18 @@ Last modified: 2026-01-16
     .overlay-container {
       position: fixed;
       bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateZ(0); /*prevent half pixel shifts*/
-      backface-visibility: hidden;
-      perspective: 1000px;
-      display: none;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: max-content;
+      display: none; /* Switch to 'flex' in JS when showing */
       gap: 12px;
       z-index: 50;
+      
+      /* FIX: Force hardware acceleration to stay 'on' so it doesn't snap */
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      
       transition: opacity 0.3s ease;
     }
 
@@ -64,18 +69,11 @@ Last modified: 2026-01-16
       font-size: 12px;
       font-family: monospace;
       letter-spacing: 0.05em;
-      backdrop-filter: blur(4px);
+      /*backdrop-filter: blur(4px);*/
       cursor: pointer;
       transition: all 0.2s ease;
-      /* FIX 2: Improve text rendering on GPU layers */ 
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      
-      /* FIX 3: Force a clean layer immediately so it doesn't "snap" into focus on hover */
+      -webkit-font-smoothing: subpixel-antialiased;
       transform: translateZ(0);
-      
-      /* FIX 4: Optimization for backdrop-filter */
-      isolation: isolate;
     }
 
     .overlay-container button:hover { background: rgba(45, 45, 50, 0.9); }
