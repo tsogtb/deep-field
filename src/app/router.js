@@ -25,42 +25,6 @@ function setupStopCamera(camera) {
   window.addEventListener("pointerdown", stopCamera);
 }
 
-  let passiveOrbitActive = false;
-
-  function togglePassiveOrbit(camera, target, options = {}) {
-    passiveOrbitActive = !passiveOrbitActive;
-
-    const btn = document.getElementById("btn-passive-orbit");
-    btn?.classList.toggle("active", passiveOrbitActive);
-
-    if (!passiveOrbitActive) {
-      camera.driver = null;
-      camera.controller?.setPositionAndOrientation?.(
-        camera.position,
-        camera.orientation
-      );
-      return;
-    }
-
-    const from = camera.snapshot();
-
-    camera.driver = new CameraLerp(
-      from,
-      from,
-      0.0,
-      {
-        lookAtTarget: target,
-        orbitSpeed: options.orbitSpeed ?? 0.1,
-        tiltRange: options.tiltRange ?? [Math.PI * 0.45, Math.PI * 0.45],
-        tiltSpeed: 0,
-        loop: true
-      }
-    );
-
-    setupStopCamera(camera);
-  }
-
-
 /* --------------------------------
    Resolve initial scene & camera from URL
 -------------------------------- */
@@ -208,15 +172,7 @@ export function resolveRouteFromURL(app, camera) {
     document.body.classList.add("biology-active");
     app.setMode("biology", "secondary")
     const target = vec3.fromValues(0, 0, 0);
-    const startPos = vec3.fromValues(0, 0, 50);
-    const endPos   = vec3.fromValues(0, 0, 50);
 
-    const orbitBtn = document.getElementById("btn-passive-orbit");
-    orbitBtn?.addEventListener("click", () => {
-      togglePassiveOrbit(camera, target, {
-        orbitSpeed: scene === "biology-tertiary" ? 0.075 : 0.175
-      });
-    });
 
     const onPlayClicked = () => {
       const from = camera.snapshot();
@@ -235,15 +191,6 @@ export function resolveRouteFromURL(app, camera) {
     app.setMode("biology", "tertiary")
     document.body.classList.add("biology-active");
     const target = vec3.fromValues(0, 0, 0);
-
-    const orbitBtn = document.getElementById("btn-passive-orbit");
-    orbitBtn?.addEventListener("click", () => {
-      togglePassiveOrbit(camera, target, {
-        orbitSpeed: scene === "biology-tertiary" ? 0.075 : 0.175
-      });
-    });
-    const startPos = vec3.fromValues(0, 0, 150);
-    const endPos   = vec3.fromValues(0, 0, 50);
 
     const onPlayClicked = () => {
       const from = camera.snapshot();

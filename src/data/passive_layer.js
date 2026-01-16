@@ -25,7 +25,7 @@ function SquareWireframe(center, size) {
   ]);
 }
 
-const FRAME_COUNT = 5000;
+const FRAME_COUNT = 10000;
 
 const squareBottom = SquareWireframe({ x: 0, y: -15, z: 0 }, 30);
 const squareTop    = SquareWireframe({ x: 0, y:  15, z: 0 }, 30);
