@@ -7,6 +7,7 @@ export const InputState = {
     movementX: 0, 
     movementY: 0,
     isPressed: false, // Track drag state
+    zoomDelta: 0,
   },
 };
 
@@ -96,12 +97,8 @@ export function setupInput(canvas, handlers = {}) {
   
       if (initialPinchDistance > 0) {
         const delta = dist - initialPinchDistance;
-        // Map pinch to your zoom logic (adjust 0.1 for sensitivity)
-        if (delta > 2) { 
-          handlers.onKeyDown?.('w', { code: 'KeyW' }); // Simulate zoom in
-        } else if (delta < -2) {
-          handlers.onKeyDown?.('s', { code: 'KeyS' }); // Simulate zoom out
-        }
+      
+        InputState.mouse.zoomDelta = -delta * 0.05;
       }
       initialPinchDistance = dist;
     } else if (e.touches.length === 1 && InputState.mouse.isPressed) {
@@ -113,7 +110,7 @@ export function setupInput(canvas, handlers = {}) {
       lastTouchY = touch.clientY;
     }
   }, { passive: false });
-  
+
   canvas.addEventListener("touchend", (e) => {
     if (e.touches.length === 0) {
       InputState.mouse.isPressed = false;

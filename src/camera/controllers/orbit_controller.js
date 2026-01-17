@@ -22,8 +22,19 @@ export class OrbitController {
       this.phi = Math.max(0.01, Math.min(Math.PI-0.01, this.phi));
     }
 
+    let zoomAmount = 0;
     if (input.move && input.move[2]) {
-      this.distance = Math.max(this.minDistance, Math.min(this.maxDistance, this.distance + input.move[2]*this.zoomSpeed));
+      zoomAmount = input.move[2] * this.zoomSpeed;
+    } else if (input.mouse && input.mouse.zoomDelta) {
+      zoomAmount = input.mouse.zoomDelta * this.zoomSpeed;
+      input.mouse.zoomDelta = 0; 
+    }
+  
+    if (zoomAmount !== 0) {
+      this.distance = Math.max(
+        this.minDistance, 
+        Math.min(this.maxDistance, this.distance + zoomAmount)
+      );
     }
 
     const x = this.distance * Math.sin(this.phi) * Math.sin(this.theta);
