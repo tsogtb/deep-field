@@ -17,6 +17,7 @@ export function getMovementVector(InputState, camera, out = moveScratch) {
   vec3.set(move, 0, 0, 0);
   out.roll = 0;
   out.level = InputState.keys.has("KeyR");
+  out.mouse = InputState.mouse;
 
   const controllerName = camera.controller?.constructor.name;
 

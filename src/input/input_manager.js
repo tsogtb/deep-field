@@ -84,12 +84,11 @@ export function setupInput(canvas, handlers = {}) {
   }, { passive: false });
 
   let initialPinchDistance = 0;
-
   canvas.addEventListener("touchmove", (e) => {
     if (e.target === canvas) e.preventDefault();
   
     if (e.touches.length === 2) {
-      // --- PINCH ZOOM LOGIC ---
+      // --- PINCH ZOOM ---
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -97,12 +96,18 @@ export function setupInput(canvas, handlers = {}) {
   
       if (initialPinchDistance > 0) {
         const delta = dist - initialPinchDistance;
-      
-        InputState.mouse.zoomDelta = -delta * 0.05;
+        // Use += to accumulate pinch movement between frames
+        InputState.mouse.zoomDelta += -delta * 0.05; 
       }
       initialPinchDistance = dist;
+  
+      // IMPORTANT: Update anchor points to the midpoint of the pinch.
+      // This prevents the camera from snapping/rotating wildly when you lift one finger.
+      lastTouchX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      lastTouchY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+  
     } else if (e.touches.length === 1 && InputState.mouse.isPressed) {
-      // --- EXISTING ROTATION LOGIC ---
+      // --- ROTATION ---
       const touch = e.touches[0];
       InputState.mouse.movementX += (touch.clientX - lastTouchX);
       InputState.mouse.movementY += (touch.clientY - lastTouchY);
@@ -110,7 +115,7 @@ export function setupInput(canvas, handlers = {}) {
       lastTouchY = touch.clientY;
     }
   }, { passive: false });
-
+  
   canvas.addEventListener("touchend", (e) => {
     if (e.touches.length === 0) {
       InputState.mouse.isPressed = false;

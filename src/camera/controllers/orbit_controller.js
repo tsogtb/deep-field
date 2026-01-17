@@ -23,10 +23,13 @@ export class OrbitController {
     }
 
     let zoomAmount = 0;
-    if (input.move && input.move[2]) {
-      zoomAmount = input.move[2] * this.zoomSpeed;
-    } else if (input.mouse && input.mouse.zoomDelta) {
-      zoomAmount = input.mouse.zoomDelta * this.zoomSpeed;
+
+    if (input.move && input.move[2] !== 0) {
+      zoomAmount += input.move[2] * this.zoomSpeed;
+    }
+    if (input.mouse && input.mouse.zoomDelta !== 0) {
+      zoomAmount += input.mouse.zoomDelta * this.zoomSpeed;
+  
       input.mouse.zoomDelta = 0; 
     }
   
