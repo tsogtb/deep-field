@@ -115,11 +115,14 @@ export function setupInput(canvas, handlers = {}) {
       lastTouchY = touch.clientY;
     }
   }, { passive: false });
-  
+
   canvas.addEventListener("touchend", (e) => {
-    if (e.touches.length === 0) {
-      InputState.mouse.isPressed = false;
-    }
+  if (e.touches.length === 1) {
+    lastTouchX = e.touches[0].clientX;
+    lastTouchY = e.touches[0].clientY;
+  } else if (e.touches.length === 0) {
+    InputState.mouse.isPressed = false;
+  }
     initialPinchDistance = 0; 
   });
 
