@@ -1,97 +1,44 @@
 # 🌌 deepfield
 
-**A modular JavaScript framework for procedural geometry, particle dynamics, and GPU-based visualization.**
+**An integrated computational pipeline for the procedural synthesis and physical evolution of complex manifolds.**
 
-![Spaghetti Simulation](./assets/deepfield_line_red.gif)
-
-> **Why Deepfield?**  
-> Just as the Hubble Deep Field revealed structure through accumulation, `deepfield` reveals space, motion, and form by sampling, evolving, and rendering large numbers of discrete points.
+This repository provides a unified high-performance execution context for generating unbiased Monte Carlo distributions and evolving N-body states under arbitrary vector fields. By decoupling geometric topology from dynamical integration, the system enables simulations ranging from stable orbital dynamics to path-dependent macromolecular relaxation.
 
 ---
 
-## 🚀 Performance
+## 🏗 Subsystem Architecture
 
-`deepfield` is built for **real-time simulation and visualization**.
+### 1. Manifold Sampling Engine
+A specialized subsystem for generating **unbiased Monte Carlo distributions** across 1D, 2D, and 3D geometric primitives.
+- **Dynamic Manifolds:** Utilizes importance weighting and iterative rejection logic to bypass static meshes and resolve Boolean topology.
+- **Analytical Re-definition:** Designed for interactive topological updates; point-cloud distributions adapt to analytical bounds in real-time without the overhead of re-baking or manual re-sampling.
+- **AABB Heuristics:** Accelerated intersection sampling via Bounding Box constraint shrinking to minimize search space.
+- **Memory Optimization:** High-throughput sampling (10⁵/frame) utilizing garbage-collection-aware loops and "out-parameter" patterns.
 
-- **Fast:** Millions of samples per second for complex geometries and particle systems.
-- **Streaming-friendly:** Designed to write directly into `Float32Array` buffers for GPU upload.
-- **Zero-dependency core:** Geometry, math, and physics modules are pure and standalone.
-- **GPU-ready:** Includes adapters and demos using WebGL / `regl`.
+### 2. Dynamical Systems Engine
+A universal time-integration core designed for the **high-fidelity evolution** of N-body states under arbitrary vector fields.
+- **Pluggable Derivative Kernels:** Abstracted integration logic allows for interchangeable kernels (e.g., Central Gravity, Dissipative Viscosity, Stochastic Perturbations).
+- **Symplectic Stability:** Employs a semi-implicit Euler scheme to maintain long-term phase-space volume and energy stability.
+- **Zero-Copy Synchronization:** Direct `Float32Array` mapping between CPU physics and GPU vertex attributes for minimum overhead.
+- **Computational Density:** Handles 30,000+ active agents at 60Hz using linearized memory to maximize cache locality.
 
----
-
-## ✨ Features
-
-### Procedural Geometry
-- **1D Paths:** Uniform arc-length sampling for lines, arcs, helices, and Bézier curves.
-- **2D Shapes:** Circles, ellipses, rectangles, triangles, convex polygons.
-- **3D Volumes:** Spheres, ellipsoids, boxes, cones, cylinders, shells.
-- **CSG Operations:** Union, intersection, and difference with uniform density guarantees.
-
-### Particle Dynamics
-- **Generic State System:** Typed particle states with position, velocity, and optional acceleration.
-- **Force Fields:** Pluggable derivatives (e.g. central gravity).
-- **Integrators:** Time-stepping via Euler (with room for Verlet / RK4).
-- **Deterministic Simulation:** Explicit control over time step and evolution.
-
-### Visualization
-- **GPU Data Bridges:** Convert simulation states into GPU buffers efficiently.
-- **Point Cloud Rendering:** High-performance point-based visualization using `regl`.
-- **Decoupled Design:** Rendering never mutates physics or geometry state.
+### 3. Kinetic Morphogenesis & Constraints
+A case study in **Complex Systems**, applying the engine to the problem of path-dependent macromolecular relaxation and constraint satisfaction.
+- **Heteropolymer (HP) Folding:** Sequence-specific force fields where hydrophobic/polar affinities drive organized tertiary collapse.
+- **Homogeneous Relaxation (HR):** Energetic minimization of complex topological seeds such as Trefoils, Toroids, and Helices.
+- **Spatial Hash Grid:** Custom $O(N)$ neighbor discovery for sub-linear interaction resolving, bypassing traditional $O(N^2)$ bottlenecks.
 
 ---
 
-## 🛠 Quick Start
+## 🛠 Engineering Philosophy
 
-```js
-import { Sphere3D } from 'deepfield/geometry';
-import { gravityCentral, integrateEuler } from 'deepfield/physics';
+- **Decoupled Abstractions:** Geometric topology is strictly decoupled from dynamical integration logic.
+- **Deterministic Evolution:** Explicit control over temporal stepping and stochastic variables to ensure reproducible results.
+- **Performance-Driven Design:** Prioritizes resource-constrained architectural decisions, focusing on deterministic execution and robust algorithmic kernels.
 
-// 1. Sample a volume
-const sphere = new Sphere3D({ x: 0, y: 0, z: 0 }, 5);
-const points = new Float32Array(100000 * 3);
+---
 
-for (let i = 0; i < 100000; i++) {
-  const p = sphere.sample();
-  points[i*3+0] = p.x;
-  points[i*3+1] = p.y;
-  points[i*3+2] = p.z;
-}
+## 🔬 Research & Integration
 
-// 2. Evolve particles under gravity
-let state = {
-  t: 0,
-  position: [[1, 0, 0]],
-  velocity: [[0, 1, 0]],
-};
-
-const deriv = gravityCentral(10);
-
-state = integrateEuler(state, deriv, 0.01);
-```
-
-## 🧪 Mathematical Rigor
-
-deepfield prioritizes correctness over shortcuts.
-
-- 1D: Arc-length parameterization for uniform path sampling.
-
-- 2D: Square-root radial distributions to prevent center clustering.
-
-- 3D: Cube-root volume scaling and cosine-correct spherical sampling.
-
-- Physics: Explicit time integration with controllable error via dt.
-
-No hidden easing. No visual hacks.
-
-## 🤝 Contributing
-
-Current areas of focus:
-
-- Higher-order integrators (Verlet, RK4)
-
-- Multi-body interactions
-
-- Deterministic sampling (sample(t)) for animation
-
-- GPU instancing & transform pipelines
+This framework is the core computational engine for the simulations hosted at:  
+👉 **[Portfolio & Live Demos](https://tsogtb.github.io/projects/)**
