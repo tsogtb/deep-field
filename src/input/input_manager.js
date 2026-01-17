@@ -16,7 +16,7 @@ export const InputState = {
  * @param {Object} handlers - Optional callbacks: onKeyDown(key, event)
  */
 export function setupInput(canvas, handlers = {}) {
-  
+
   // --- Keyboard ---
   window.addEventListener("keydown", (e) => {
     if (!InputState.keys.has(e.code)) {
@@ -62,6 +62,65 @@ export function setupInput(canvas, handlers = {}) {
     }
   });
 
+  // --- Touch Support ---
+  let lastTouchX = 0;
+  let lastTouchY = 0;
+
+  canvas.addEventListener("touchstart", (e) => {
+    // Prevent scrolling while interacting with the simulation
+    if (e.target === canvas) e.preventDefault();
+    
+    InputState.mouse.isPressed = true;
+    const touch = e.touches[0];
+    lastTouchX = touch.clientX;
+    lastTouchY = touch.clientY;
+
+    // Trigger your UI hint transitions (same as mousedown)
+    const standby = document.getElementById('hint-standby');
+    if (standby && standby.style.display !== 'none') {
+       standby.dispatchEvent(new Event('mousedown')); // Re-use your existing logic
+    }
+  }, { passive: false });
+
+  let initialPinchDistance = 0;
+
+  canvas.addEventListener("touchmove", (e) => {
+    if (e.target === canvas) e.preventDefault();
+  
+    if (e.touches.length === 2) {
+      // --- PINCH ZOOM LOGIC ---
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+  
+      if (initialPinchDistance > 0) {
+        const delta = dist - initialPinchDistance;
+        // Map pinch to your zoom logic (adjust 0.1 for sensitivity)
+        if (delta > 2) { 
+          handlers.onKeyDown?.('w', { code: 'KeyW' }); // Simulate zoom in
+        } else if (delta < -2) {
+          handlers.onKeyDown?.('s', { code: 'KeyS' }); // Simulate zoom out
+        }
+      }
+      initialPinchDistance = dist;
+    } else if (e.touches.length === 1 && InputState.mouse.isPressed) {
+      // --- EXISTING ROTATION LOGIC ---
+      const touch = e.touches[0];
+      InputState.mouse.movementX += (touch.clientX - lastTouchX);
+      InputState.mouse.movementY += (touch.clientY - lastTouchY);
+      lastTouchX = touch.clientX;
+      lastTouchY = touch.clientY;
+    }
+  }, { passive: false });
+  
+  canvas.addEventListener("touchend", (e) => {
+    if (e.touches.length === 0) {
+      InputState.mouse.isPressed = false;
+    }
+    initialPinchDistance = 0; 
+  });
+
   // --- Focus / Blur handling ---
   window.addEventListener("blur", () => {
     InputState.keys.clear();
@@ -80,7 +139,8 @@ export function setupInput(canvas, handlers = {}) {
   canvas.setAttribute("tabindex", "0");
 
   // Ensure canvas regains focus on user interaction
-  window.addEventListener("pointerdown", () => {
+  window.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === 'touch') return; // Let touch listeners handle it
     if (document.activeElement !== canvas) {
       canvas.focus();
     }
