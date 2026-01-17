@@ -33,6 +33,17 @@ Last modified: 2026-01-17
       touch-action: none;
       user-select: none;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeSpeed; 
+      -webkit-text-size-adjust: 100%;
+    }
+
+    button {
+      /* Prevents the grey highlight box on mobile Chrome */
+      -webkit-tap-highlight-color: transparent;
+      /* Prevents system-level text selection during fast clicks */
+      user-select: none;
     }
 
     canvas { display: block; width: 100vw; height: 100vh; outline: none; }
@@ -41,6 +52,17 @@ Last modified: 2026-01-17
     .app-ui { display: none; }
     body.ui-ready .app-ui { display: block; }
     body.ui-ready #mobile-controls { display: flex; }
+
+    .overlay-container button, 
+    #settings-panel,
+    .camera-hint {
+      /* Prevents text from shifting 1px when clicking/hovering */
+      backface-visibility: hidden;
+      transform: translateZ(0); 
+      
+      /* Forces sharper rendering for small monospace text */
+      -webkit-font-smoothing: subpixel-antialiased; 
+    }
 
     /* --- COMMON OVERLAY SYSTEM --- */
     .overlay-container {
