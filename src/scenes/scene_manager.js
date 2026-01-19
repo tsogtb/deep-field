@@ -9,6 +9,7 @@ import { proteinFoldingDemoConfig } from "./setups/biology_demo.js";
 import { proteinFoldingExperimentalDemoConfig } from "./setups/biology_demo_experimental.js";
 import { starsConfig } from "./setups/hero_scene.js";
 import { physicsJellyConfig } from "./setups/jelly.js";
+import { opticsConfig } from "./setups/optics.js";
 
 export const SCENES = [
   blankConfig,
@@ -22,6 +23,7 @@ export const SCENES = [
   proteinFoldingExperimentalDemoConfig,
   starsConfig,
   physicsJellyConfig,
+  opticsConfig,
 ];
 
 export function getSceneConfig(index) {
